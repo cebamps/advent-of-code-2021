@@ -1,0 +1,31 @@
+cabal-version: 2.0
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           advent-of-code-y2021
+version:        0.1.0.0
+build-type:     Simple
+
+library advent-of-code-inputs
+  exposed-modules:
+      Input.D01
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      data/
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable d01
+  main-is: d01.hs
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      exe
+  build-depends:
+      advent-of-code-inputs
+    , base >=4.7 && <5
+  default-language: Haskell2010

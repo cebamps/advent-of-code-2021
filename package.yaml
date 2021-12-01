@@ -1,0 +1,19 @@
+name:                advent-of-code-y2021
+version:             0.1.0.0
+
+dependencies:
+  - base >= 4.7 && < 5
+
+## commented out until i have shared tools
+#library:
+#  source-dirs:      src
+
+internal-libraries:
+  advent-of-code-inputs:
+    source-dirs: data/
+
+executables:
+  d01:
+    source-dirs: exe
+    main: d01.hs
+    dependencies: advent-of-code-inputs
