@@ -7,9 +7,7 @@ zipPairs :: [a] -> [(a, a)]
 zipPairs = zip <*> tail
 
 countIncreases :: Ord a => [a] -> Int
-countIncreases depths = length increases
-  where
-    increases = [() | (x, y) <- zipPairs depths, x < y]
+countIncreases = length . filter (uncurry (<)) . zipPairs
 
 windows :: Num a => Int -> [a] -> [[a]]
 windows len = filter ((== len) . length) . fmap (take len) . tails
