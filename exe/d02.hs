@@ -5,13 +5,13 @@ import Input.D02 (Direction (..), input)
 
 data Position = Position {horizP :: Int, depthP :: Int} deriving (Eq, Show)
 
-data FullPosition = FullPosition {posFP :: Position, aimFP :: Int} deriving (Eq, Show)
+data AimedPosition = AimedPosition {posAP :: Position, aimAP :: Int} deriving (Eq, Show)
 
 initialPosition :: Position
 initialPosition = Position 0 0
 
-initialPositionF :: FullPosition
-initialPositionF = FullPosition initialPosition 0
+initialPositionA :: AimedPosition
+initialPositionA = AimedPosition initialPosition 0
 
 move :: Direction -> Position -> Position
 move (Forward x) p = p {horizP = horizP p + x}
@@ -19,21 +19,21 @@ move (Up x) p = p {depthP = depthP p - x}
 move (Down x) p = p {depthP = depthP p + x}
 
 -- ah, this is screaming for lenses
-moveF :: Direction -> FullPosition -> FullPosition
-moveF (Forward x) p = p {posFP = (move (Forward x) . move (Down (x * aimFP p))) (posFP p)}
-moveF (Up x) p = p {aimFP = aimFP p - x}
-moveF (Down x) p = p {aimFP = aimFP p + x}
+moveA :: Direction -> AimedPosition -> AimedPosition
+moveA (Forward x) p = p {posAP = (move (Forward x) . move (Down (x * aimAP p))) (posAP p)}
+moveA (Up x) p = p {aimAP = aimAP p - x}
+moveA (Down x) p = p {aimAP = aimAP p + x}
 
 answer :: Position -> Int
 answer (Position h d) = h * d
 
-answerF :: FullPosition -> Int
-answerF (FullPosition (Position h d) _) = h * d
+answerA :: AimedPosition -> Int
+answerA (AimedPosition (Position h d) _) = h * d
 
 main :: IO ()
 main = do
   print $
     [ answer . foldl' (flip move) initialPosition,
-      answerF . foldl' (flip moveF) initialPositionF
+      answerA . foldl' (flip moveA) initialPositionA
     ]
       <*> [input]
