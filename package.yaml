@@ -12,3 +12,7 @@ executables:
     source-dirs: exe
     main: d01.hs
     dependencies: advent-of-code-y2021
+  d02:
+    source-dirs: exe
+    main: d02.hs
+    dependencies: advent-of-code-y2021
