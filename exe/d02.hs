@@ -30,12 +30,10 @@ answer (Position h d) = h * d
 answerF :: FullPosition -> Int
 answerF (FullPosition (Position h d) _) = h * d
 
-test :: FullPosition
-test = foldl' (flip moveF) initialPositionF [Down 1, Forward 3, Up 4, Forward 1]
-
--- $> main
-
 main :: IO ()
 main = do
-  print . answer . foldl' (flip move) initialPosition $ input
-  print . answerF . foldl' (flip moveF) initialPositionF $ input
+  print $
+    [ answer . foldl' (flip move) initialPosition,
+      answerF . foldl' (flip moveF) initialPositionF
+    ]
+      <*> [input]
