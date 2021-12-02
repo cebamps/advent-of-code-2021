@@ -30,10 +30,29 @@ answer (Position h d) = h * d
 answerA :: AimedPosition -> Int
 answerA (AimedPosition (Position h d) _) = h * d
 
+-- Alternative: transform a list of commands from exercise 2 into a list of
+-- commands from 1. Not very meaningful, but it works. The responsibility of
+-- keeping up with state is split in two separate sequental halves though (aim
+-- first, position second), which makes no sense but is a nice separation.
+
+correctCommands :: [Direction] -> [Direction]
+correctCommands = concatZipWith correctCommand . aims <*> id
+  where
+    concatZipWith f xs ys = concat $ zipWith f xs ys
+    -- the only state we need to keep is the aim
+    aims = scanl (+) 0 . fmap aimFromDirection
+    aimFromDirection (Up x) = - x
+    aimFromDirection (Down x) = x
+    aimFromDirection _ = 0
+    correctCommand aim (Forward x) = [Forward x, Down (aim * x)]
+    correctCommand _ _ = []
+
 main :: IO ()
 main = do
   print $
     [ answer . foldl' (flip move) initialPosition,
-      answerA . foldl' (flip moveA) initialPositionA
+      answerA . foldl' (flip moveA) initialPositionA,
+      -- alternative solution to 2
+      answer . foldl' (flip move) initialPosition . correctCommands
     ]
       <*> [input]
