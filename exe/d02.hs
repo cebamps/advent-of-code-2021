@@ -20,14 +20,7 @@ move (Down x) p = p {depthP = depthP p + x}
 
 -- ah, this is screaming for lenses
 moveF :: Direction -> FullPosition -> FullPosition
-moveF (Forward x) p =
-  p
-    { posFP =
-        (posFP p)
-          { horizP = (horizP . posFP) p + x,
-            depthP = (depthP . posFP) p + aimFP p * x
-          }
-    }
+moveF (Forward x) p = p {posFP = (move (Forward x) . move (Down (x * aimFP p))) (posFP p)}
 moveF (Up x) p = p {aimFP = aimFP p - x}
 moveF (Down x) p = p {aimFP = aimFP p + x}
 
