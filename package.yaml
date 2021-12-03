@@ -16,3 +16,9 @@ executables:
     source-dirs: exe
     main: d02.hs
     dependencies: advent-of-code-y2021
+  d03:
+    source-dirs: exe
+    main: d03.hs
+    dependencies:
+      - advent-of-code-y2021
+      - containers
