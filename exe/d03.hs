@@ -1,9 +1,10 @@
 module Main where
 
 import Control.Applicative (Applicative (liftA2), ZipList (ZipList, getZipList))
-import Data.List (foldl', group, maximumBy, minimumBy, sort, transpose)
+import Data.Function (on)
+import Data.List (foldl', group, groupBy, maximumBy, minimumBy, sort, sortOn, transpose)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe, listToMaybe, mapMaybe)
 import Data.Monoid (Ap (Ap, getAp), Sum (Sum))
 import Data.Ord (comparing)
 import Input.D03 (input, testInput)
@@ -81,6 +82,37 @@ locate' crit (xs : xss) =
 -- could use a short circuit when xs is x:[]
 locate' _ [] = []
 
+--- part 2 alt: more generic and safe
+
+type PrefixList a = (a, [[a]])
+
+type Selector a = [a] -> Maybe a
+
+partitionByPrefixSorted :: Eq a => [[a]] -> [[[a]]]
+partitionByPrefixSorted = groupBy ((==) `on` listToMaybe)
+
+separateHead :: [[a]] -> Maybe (PrefixList a)
+separateHead xss@((x : _) : _) = Just (x, fmap tail xss)
+separateHead _ = Nothing
+
+trimSorted :: Eq a => Selector (PrefixList a) -> [[a]] -> Maybe (PrefixList a)
+trimSorted selector = selector . mapMaybe separateHead . partitionByPrefixSorted
+
+recurseTrimSorted :: Eq a => Selector (PrefixList a) -> [[a]] -> Maybe [a]
+recurseTrimSorted selector xss = case trimSorted selector xss of
+  Just (x, xss') -> (x :) <$> recurseTrimSorted selector xss'
+  Nothing -> Just []
+
+safeSelect :: ([a] -> a) -> [a] -> Maybe a
+safeSelect _ [] = Nothing
+safeSelect sel xs = Just (sel xs)
+
+mostFrequentPrefix :: Selector (PrefixList a)
+mostFrequentPrefix = (safeSelect . maximumBy) $ comparing (length . snd)
+
+leastFrequentPrefix :: Selector (PrefixList a)
+leastFrequentPrefix = (safeSelect . minimumBy) $ comparing (length . snd)
+
 main :: IO ()
 main = do
   let gamma = bitsToInteger <$> gammaBits input
@@ -90,3 +122,10 @@ main = do
   let o2Rating = (bitsToInteger . locate mostCommon) input
   let co2Rating = (bitsToInteger . locate leastCommon) input
   print $ o2Rating * co2Rating
+
+  let sortedInput = sort input
+  let o2Rating' = bitsToInteger <$> recurseTrimSorted mostFrequentPrefix sortedInput
+  let co2Rating' = bitsToInteger <$> recurseTrimSorted leastFrequentPrefix sortedInput
+  print $ liftA2 (*) o2Rating' co2Rating'
+
+-- $> main

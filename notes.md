@@ -13,3 +13,20 @@ semigroup!
 The article forgets to mention those laws though: it only works if the Action
 instance respects the laws. But it's not too hard to prove them, i.e., that
 `act m1` is an automorphism and that `act` is a homomorphism.
+
+## Day 3
+
+Part 2 is really just dealing with a prefix tree (trie).
+
+My first approach did not see that, but it's pretty much what I was doing. I
+transposed the input to turn it into what pretty much amounts to a list of
+layers of my trie:
+
+```
+111      101      1  0
+010  ->  111  ~=  1  1  (after sorting)
+110      100      01 0
+```
+
+I redid it without implementing an actual trie, so it obscures the more
+primitive folding operations.
