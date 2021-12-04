@@ -4,7 +4,7 @@ import Control.Applicative (Applicative (liftA2), ZipList (ZipList, getZipList))
 import Data.List (foldl', group, maximumBy, minimumBy, sort, transpose)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes, fromMaybe)
-import Data.Monoid (Sum (Sum))
+import Data.Monoid (Ap (Ap, getAp), Sum (Sum))
 import Data.Ord (comparing)
 import Input.D03 (input, testInput)
 
@@ -27,18 +27,23 @@ lookupCM k (CombineMap m) = Map.findWithDefault mempty k m
 toGamma :: Char -> GammaBit
 toGamma = flip singletonCM (Sum 1)
 
+-- Zips lists of Semigroup values together. Unlike fold, there is no empty
+-- value so we wrap the outcome in Maybe.
+zipFold :: (Foldable f, Semigroup m) => f [m] -> Maybe [m]
+zipFold = fmap (getZipList . getAp) . foldMap (Just . Ap . ZipList)
+
 -- not safe on empty lists
 fromGamma :: GammaBit -> Char
 fromGamma (CombineMap m) = fst . maximumBy (comparing snd) . Map.toList $ m
 
-gammaBits :: [[Char]] -> [Char]
-gammaBits = fmap fromGamma . getZipList . foldr (liftA2 (<>)) (ZipList (repeat mempty)) . fmap (ZipList . fmap toGamma)
+gammaBits :: [[Char]] -> Maybe [Char]
+gammaBits = (fmap . fmap) fromGamma . zipFold . (fmap . fmap) toGamma
 
 flipBit :: Char -> Char
 flipBit = fromMaybe <*> flip lookup [('0', '1'), ('1', '0')]
 
-epsilonBits :: [[Char]] -> [Char]
-epsilonBits = fmap flipBit . gammaBits
+epsilonBits :: [[Char]] -> Maybe [Char]
+epsilonBits = (fmap . fmap) flipBit . gammaBits
 
 bitsToInteger :: [Char] -> Integer
 bitsToInteger = foldl' shiftAdd 0
@@ -78,9 +83,9 @@ locate' _ [] = []
 
 main :: IO ()
 main = do
-  let gamma = (bitsToInteger . gammaBits) input
-  let epsilon = (bitsToInteger . epsilonBits) input
-  print $ gamma * epsilon
+  let gamma = bitsToInteger <$> gammaBits input
+  let epsilon = bitsToInteger <$> epsilonBits input
+  print $ liftA2 (*) gamma epsilon
 
   let o2Rating = (bitsToInteger . locate mostCommon) input
   let co2Rating = (bitsToInteger . locate leastCommon) input
