@@ -22,3 +22,7 @@ executables:
     dependencies:
       - advent-of-code-y2021
       - containers
+  d04:
+    source-dirs: exe
+    main: d04.hs
+    dependencies: advent-of-code-y2021
