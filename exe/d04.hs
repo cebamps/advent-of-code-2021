@@ -58,9 +58,9 @@ mkmBoard :: Board a -> MarkedBoard a
 mkmBoard = MarkedBoard (pure False)
 
 mark :: Eq a => a -> MarkedBoard a -> MarkedBoard a
-mark x m@MarkedBoard {mbmarks, mbboard} = m {mbmarks = newmarks}
-  where
-    newmarks = liftA2 (\it -> if it == x then const True else id) mbboard mbmarks
+mark x m@MarkedBoard {mbmarks, mbboard} =
+  let newmarks = liftA2 ((||) . (== x)) mbboard mbmarks
+   in m {mbmarks = newmarks}
 
 isWon :: MarkedBoard a -> Bool
 isWon MarkedBoard {mbmarks} = (or . fmap and) rows || (or . fmap and) columns
