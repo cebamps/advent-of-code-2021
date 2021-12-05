@@ -30,3 +30,50 @@ layers of my trie:
 
 I redid it without implementing an actual trie, so it obscures the more
 primitive folding operations.
+
+## Day 5
+
+### Project setup
+
+I'm still poking around for a better project structure. The experience with
+haskell-language-server and ghcid has been a little difficult when separating
+the logic between lib and executable, because when editing the executable,
+neither of them will account for changes in the library. This is addressed here
+for HLS:
+https://github.com/haskell/haskell-language-server/blob/1.5.1/docs/troubleshooting.md#problems-with-multi-component-tests-suites-executables-benchmarks-support-using-stack
+
+So instead I put my logic in the lib and make the executable a rather dull
+shell that feeds stdin input into the exported solve function.
+
+Running ghcid also causes no trouble then: I can specify the Solution module
+file by path.
+
+For reference though, I found that it is possible to get more control over ghcid with this method:
+
+```sh
+ghcid -c 'stack ghci --no-load --ghci-options "-ghci-script ghci-whatever"' -a
+```
+
+where `ghci-whatever` is a file containing `:load src/Solution/D05.hs` for
+example. Using a `.ghci` file allows to skip the `-ghci-script` argument
+passing, but since there are multiple exercises I would require multiple ghci
+script files.
+
+### Parsing
+
+Parsing-wise, I got to try my hand at parsec for the first time! I hesitated
+between parsec, attoparsec and megaparsec. The thing that annoyed me is that I
+saw no straightforward way to parse an integer number.
+
+Now I understand better why that might be: the string representation of a
+number is language-dependent. Even for unsigned decimal integers: do you allow
+leading zeros? Thousands separators? If so, in what format? Do you allow "0x"
+for hexadecimal parsing, or a "b" prefix to indicate binary? Signed or floating
+point raise more questions, with scientific notation, spaces and so on.
+
+### Solving
+
+This one was much more pleasant! I think part of it is because I discarded
+custom data types, which I find rather unwieldy for extraction and pattern
+matching. And I didn't worry about using a Map to count instances of
+coordinates either. Anyway that was cool!

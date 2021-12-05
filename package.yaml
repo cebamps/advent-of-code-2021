@@ -6,6 +6,8 @@ dependencies:
 
 library:
   source-dirs:      src
+  dependencies:
+    - parsec
 
 executables:
   d01:
@@ -25,4 +27,8 @@ executables:
   d04:
     source-dirs: exe
     main: d04.hs
+    dependencies: advent-of-code-y2021
+  d05:
+    source-dirs: exe
+    main: d05.hs
     dependencies: advent-of-code-y2021
