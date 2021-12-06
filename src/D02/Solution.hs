@@ -1,4 +1,4 @@
-module Main where
+module D02.Solution (main) where
 
 import Data.Foldable (foldl')
 import D02.Input (Direction (..), input)

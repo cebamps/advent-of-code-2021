@@ -2,13 +2,13 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TupleSections #-}
 
-module Main where
+module D04.Solution (main) where
 
 import Control.Applicative (ZipList (ZipList, getZipList), liftA2)
+import D04.Input
 import Data.Foldable (toList)
 import Data.List (find, partition, transpose)
 import Data.Monoid (Endo (..), First (..))
-import D04.Input
 
 -- general purpose
 

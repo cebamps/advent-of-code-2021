@@ -1,4 +1,4 @@
-module Main where
+module D03.Solution (main) where
 
 import Control.Applicative (Applicative (liftA2), ZipList (ZipList, getZipList))
 import Data.Function (on)

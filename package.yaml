@@ -7,28 +7,23 @@ dependencies:
 library:
   source-dirs:      src
   dependencies:
+    - containers
     - parsec
 
 executables:
-  d01:
+  d01: &base-exe
     source-dirs: exe
     main: d01.hs
     dependencies: advent-of-code-y2021
   d02:
-    source-dirs: exe
+    <<: *base-exe
     main: d02.hs
-    dependencies: advent-of-code-y2021
   d03:
-    source-dirs: exe
+    <<: *base-exe
     main: d03.hs
-    dependencies:
-      - advent-of-code-y2021
-      - containers
   d04:
-    source-dirs: exe
+    <<: *base-exe
     main: d04.hs
-    dependencies: advent-of-code-y2021
   d05:
-    source-dirs: exe
+    <<: *base-exe
     main: d05.hs
-    dependencies: advent-of-code-y2021

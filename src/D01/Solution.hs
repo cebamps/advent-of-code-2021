@@ -1,4 +1,4 @@
-module Main where
+module D01.Solution (main) where
 
 import Data.List (tails)
 import D01.Input (input)
