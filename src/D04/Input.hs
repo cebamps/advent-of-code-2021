@@ -1,4 +1,4 @@
-module Input.D04 (input, testInput) where
+module D04.Input (input, testInput) where
 
 type Input = ([Int], [[Int]])
 

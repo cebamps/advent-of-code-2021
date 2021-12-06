@@ -1,7 +1,7 @@
 module Main where
 
 import Data.List (tails)
-import Input.D01 (input)
+import D01.Input (input)
 
 zipPairs :: [a] -> [(a, a)]
 zipPairs = zip <*> tail

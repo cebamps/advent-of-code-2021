@@ -1,4 +1,4 @@
-module Input.D03 (input, testInput) where
+module D03.Input (input, testInput) where
 
 input :: [[Char]]
 input = lines inputString

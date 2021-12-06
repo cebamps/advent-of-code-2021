@@ -8,7 +8,7 @@ import Control.Applicative (ZipList (ZipList, getZipList), liftA2)
 import Data.Foldable (toList)
 import Data.List (find, partition, transpose)
 import Data.Monoid (Endo (..), First (..))
-import Input.D04
+import D04.Input
 
 -- general purpose
 

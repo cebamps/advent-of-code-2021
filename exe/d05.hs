@@ -1,6 +1,6 @@
 module Main where
 
-import Solution.D05 (solve)
+import D05.Solution (solve)
 
 main :: IO ()
 main = getContents >>= solve

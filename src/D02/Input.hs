@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Input.D02 (Direction (..), input) where
+module D02.Input (Direction (..), input) where
 
 data Direction
   = Forward Int

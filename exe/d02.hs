@@ -1,7 +1,7 @@
 module Main where
 
 import Data.Foldable (foldl')
-import Input.D02 (Direction (..), input)
+import D02.Input (Direction (..), input)
 
 data Position = Position {horizP :: Int, depthP :: Int} deriving (Eq, Show)
 

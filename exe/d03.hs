@@ -7,7 +7,7 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe (catMaybes, fromMaybe, listToMaybe, mapMaybe)
 import Data.Monoid (Ap (Ap, getAp), Sum (Sum))
 import Data.Ord (comparing)
-import Input.D03 (input, testInput)
+import D03.Input (input, testInput)
 
 newtype CombineMap k a = CombineMap (Map.Map k a) deriving (Eq, Show)
 

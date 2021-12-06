@@ -1,13 +1,13 @@
 {-# LANGUAGE ApplicativeDo #-}
 
-module Solution.D05 (solve) where
+module D05.Solution (solve) where
 
 import Control.Applicative
 import Data.List (group, sort)
 import Text.Parsec hiding (Line)
 import Text.Parsec.String
 
---import Input.D05
+--import D05.Input
 
 type Coord = (Int, Int)
 

@@ -10,12 +10,11 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Input.D01
-      Input.D02
-      Input.D03
-      Input.D04
-      Input.D05
-      Solution.D05
+      D01.Input
+      D02.Input
+      D03.Input
+      D04.Input
+      D05.Solution
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:

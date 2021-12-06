@@ -1,4 +1,4 @@
-module Input.D01 where
+module D01.Input where
 
 input :: [Int]
 input =
