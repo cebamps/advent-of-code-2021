@@ -71,9 +71,13 @@ leading zeros? Thousands separators? If so, in what format? Do you allow "0x"
 for hexadecimal parsing, or a "b" prefix to indicate binary? Signed or floating
 point raise more questions, with scientific notation, spaces and so on.
 
+For simplicity, I do a double parse: isolate the string representation of a
+number with a parsec Parser (`many1 digit` for an unsigned int), and lift
+the notoriously discouraged `read` into that parser.
+
 ### Solving
 
 This one was much more pleasant! I think part of it is because I discarded
 custom data types, which I find rather unwieldy for extraction and pattern
 matching. And I didn't worry about using a Map to count instances of
-coordinates either. Anyway that was cool!
+coordinates either.
