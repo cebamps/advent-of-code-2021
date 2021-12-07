@@ -1,6 +1,5 @@
 module D07.Solution (solve) where
 
-import Control.Applicative (liftA2)
 import Data.Functor (($>))
 import Data.List (minimumBy)
 import Data.Monoid (Sum (..))
@@ -40,17 +39,18 @@ sweepFinalCrabPositions initPos = [initPos $> coord | coord <- [minPos .. maxPos
     minPos = minimum initPos; maxPos = maximum initPos
 
 mostEfficientFinalCrabPositions :: TotalCostFunction -> CrabPositions -> CrabPositions
-mostEfficientFinalCrabPositions costFun = liftA2 minimumBy (comparing . costFun) sweepFinalCrabPositions
+mostEfficientFinalCrabPositions costFun initPos = minimumBy (comparing $ costFun initPos) (sweepFinalCrabPositions initPos)
 
 solveForCostFunction :: TotalCostFunction -> CrabPositions -> Int
-solveForCostFunction costFun = liftA2 costFun (mostEfficientFinalCrabPositions costFun) id
+solveForCostFunction costFun initPos = costFun (mostEfficientFinalCrabPositions costFun initPos) initPos
 
 solve1 :: CrabPositions -> Int
 solve1 = solveForCostFunction $ mkTotalCost id
 
 solve2 :: CrabPositions -> Int
 solve2 = solveForCostFunction $ mkTotalCost arith
-  where arith x = (x * (x+1)) `div` 2
+  where
+    arith x = (x * (x + 1)) `div` 2
 
 --- parsing
 
