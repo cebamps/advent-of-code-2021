@@ -20,6 +20,7 @@ library
       D04.Solution
       D05.Solution
       D06.Solution
+      D07.Solution
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:
@@ -87,6 +88,17 @@ executable d05
 
 executable d06
   main-is: d06.hs
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      exe
+  build-depends:
+      advent-of-code-y2021
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+executable d07
+  main-is: d07.hs
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:

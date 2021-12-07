@@ -20,7 +20,7 @@ executables:
   d04: { <<: *base-exe, main: d04.hs }
   d05: { <<: *base-exe, main: d05.hs }
   d06: { <<: *base-exe, main: d06.hs }
-# d07: { <<: *base-exe, main: d07.hs }
+  d07: { <<: *base-exe, main: d07.hs }
 # d08: { <<: *base-exe, main: d08.hs }
 # d09: { <<: *base-exe, main: d09.hs }
 # d10: { <<: *base-exe, main: d10.hs }
