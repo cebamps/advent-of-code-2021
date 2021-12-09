@@ -44,11 +44,9 @@ A trial is a sample of 10 paired with a sample of 4.
 
 data Wire = A | B | C | D | E | F | G deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
-type RawWire = Char
+type Digit = [Wire]
 
-type RawDigit = [Wire]
-
-type Sample = [RawDigit]
+type Sample = [Digit]
 
 type Trial = (Sample, Sample)
 
@@ -87,7 +85,7 @@ solve1 = sumOn $ length . filter ((`elem` [2, 4, 7, 3]) . length) . snd
 type PartialPermutation = [(Wire, Wire)]
 
 -- used for lookup and to recognize digits that are legal
-allCandidateDigits :: [(RawDigit, Int)]
+allCandidateDigits :: [(Digit, Int)]
 allCandidateDigits =
   [ ([A, B, C, E, F, G], 0),
     ([C, F], 1),
@@ -150,10 +148,10 @@ makePermutations xs ys = fmap (zip xs) (permutations ys)
 -- all the previous scrambled digits into different, valid digits.
 
 -- partial permutation up to now, remaining candidates
-type Progress = (PartialPermutation, [RawDigit])
+type Progress = (PartialPermutation, [Digit])
 
 --
-allowedPermutations :: Progress -> RawDigit -> [Progress]
+allowedPermutations :: Progress -> Digit -> [Progress]
 allowedPermutations (p, candidates) scrambled = do
   let (leftoverSeg, unscrambledSeg) = permute p scrambled
 
@@ -175,15 +173,15 @@ allowedPermutations (p, candidates) scrambled = do
       p' <- (p ++) <$> makePermutations leftoverSeg leftoverFromCandidate
       return (p', delete candidate candidates)
 
--- it's better to sort the RawDigits by length here, as noted earlier: they
+-- it's better to sort the Digits by length here, as noted earlier: they
 -- tend to create less branches
-walkSolutions :: Progress -> [RawDigit] -> [Progress]
+walkSolutions :: Progress -> [Digit] -> [Progress]
 walkSolutions = foldM allowedPermutations
 
-sortedDigits :: [RawDigit]
+sortedDigits :: [Digit]
 sortedDigits = sortOn length $ fst <$> allCandidateDigits
 
-resolveDigit :: [Wire] -> Maybe Int
+resolveDigit :: Digit -> Maybe Int
 resolveDigit w = lookup (sort w) allCandidateDigits
 
 digitsToInt :: [Int] -> Int
@@ -203,19 +201,19 @@ solve2 = fmap sum . mapM unscramble
 
 --- parsing
 
-fromChar :: RawWire -> Maybe Wire
+fromChar :: Char -> Maybe Wire
 fromChar = readMaybe . (: []) . toUpper
 
 inputParser :: Parser [Trial]
 inputParser = do
-  endBy line endOfLine
+  endBy trial endOfLine
   where
     wire :: Parser Wire
     wire = oneOf ['a' .. 'g'] >>= maybe (unexpected "invalid wire") return . fromChar
     sample :: Parser Sample
     sample = sepEndBy (many1 wire) (char ' ')
-    line :: Parser (Sample, Sample)
-    line = (,) <$> (sample <* skipMany (oneOf " |")) <*> sample
+    trial :: Parser Trial
+    trial = (,) <$> (sample <* skipMany (oneOf " |")) <*> sample
 
 -- i won't bother learning EitherT for now
 parseOrFail :: Parser a -> String -> IO a
