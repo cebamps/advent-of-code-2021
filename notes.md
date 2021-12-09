@@ -81,3 +81,21 @@ This one was much more pleasant! I think part of it is because I discarded
 custom data types, which I find rather unwieldy for extraction and pattern
 matching. And I didn't worry about using a Map to count instances of
 coordinates either.
+
+
+## Day 8
+
+That one was tough! I did not want to brute force on all permutations, so I
+went for a more efficient approach that builds the permutation progressively,
+one scrambled digit at a time, and prunes paths that fail to unscramble the
+next scramble digit into an available digit. It runs super quickly: about 70
+milliseconds as timed by my shell.
+
+I really liked how the recursion and branching could be easily dealt with by
+leveraging laziness (to find my way around the tree of permutations until I met
+the end) and the list monad (to abstract away the recursion and the branching;
+it's really just flat-maps).
+
+Debugging was a bit more difficult. I did it using `Debug.Trace` utilities to
+watch the steps of my monadic fold. It would also have been a good opportunity
+to try `ghci`'s debugging abilities.
