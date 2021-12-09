@@ -22,12 +22,14 @@ library
       D06.Solution
       D07.Solution
       D08.Solution
+      D09.Solution
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , comonad
     , containers
     , parsec
   default-language: Haskell2010
@@ -111,6 +113,17 @@ executable d07
 
 executable d08
   main-is: d08.hs
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      exe
+  build-depends:
+      advent-of-code-y2021
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+executable d09
+  main-is: d09.hs
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:
