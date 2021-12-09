@@ -99,3 +99,108 @@ it's really just flat-maps).
 Debugging was a bit more difficult. I did it using `Debug.Trace` utilities to
 watch the steps of my monadic fold. It would also have been a good opportunity
 to try `ghci`'s debugging abilities.
+
+
+## Day 9
+
+I saw a 2D grid and convolution and figured it was the right time to try
+comonads, which I had been intrigued by.
+
+Very roughly speaking, in my own intuitive terms, a comonad is a functor that
+allows you to "zoom out".
+
+It is dual to monads in the sense that its operations are flipped: `duplicate`
+is a backward `join` (in other word, turning your `m a` into an `m (m a)`), and
+`extract` is a backward `return` `return` (in other words, turning your `m a`
+into an `a`).
+
+The "zooming out" happens because of comonad laws. With `duplicate` each value
+is turned into a comonad value. If we think of functors as containers, a value
+then becomes a container of values. In addition, that container must be
+"focused" on the original value such that `extract` returns it:
+
+```hs
+fmap extract . duplicate = id
+```
+
+The `comonad` package provides `Store s a` in `Control.Comonad.Store`, which is
+built from an accessor function of type `(s -> a)` and an initial focus of type
+`s`. It provides facilities to move the focus around, which are built around
+the primitives `pos` and `peek`:
+
+```hs
+-- get the focus point
+pos :: Store s a -> s
+
+-- extract a value at another focus point
+peek :: s -> Store s a -> a
+
+-- extract a value at another focus point relative from the current one
+peeks :: (s -> s) -> Store s a -> a
+
+-- move the focus point
+seek :: s -> Store s a -> Store s a
+
+-- move the focus point relative to the current one
+seeks :: (s -> s) -> Store s a -> Store s a
+
+-- I didn't think too much about that one but I should have: sample values
+-- around the focus point
+experiment :: Functor f => (s -> f s) -> Store s a -> f a
+```
+
+Combining those with `extend :: (Store s a -> b) -> Store s a -> Store s b`,
+which is dual to the monadic bind `>>=`, lets us do convolutions! The argument
+to extend can sample around the focus, and the final return value gives us the
+samples in the same comonad structure.
+
+Unfortunately for me, Store is quite general and works with an accessor lambda.
+This makes it hard to read my convolution as a list -- all of its structure is
+hidden so I can't iterate over the convolution for example.
+
+I work around this by taking the indexes from the original list and sampling
+the convolution with those.
+
+I'm pretty sure a more specialized implementation of ComonadStore (the
+typeclass that provides `pos`, `peek` and friends) would be possible for
+structures such as a vector of vectors or a `Map (Int, Int) a` with
+accompanying focus, though that instance has to be able to deal with empty
+values.
+
+I tried implementing `Comonad` for a focused version of `Map (Int, Int) (Maybe
+a)` but got stuck on implementing `duplicate` on the Comonad instance. I guess
+I've made that work now, I'll have to try that later.
+
+```hs
+type Idx = (Int, Int)
+data Field i a = Field { fFocus :: i, fValues: Map i a }
+
+instance Comonad (Field Idx) where
+  -- untested. Should return a Field Idx (Field Idx a).
+  -- Each value of the map is replaced by the entire map, with the focus moved
+  -- onto it.
+  duplicate Field{..} = Field {fFocus, fValues = mapWithKey (\k a -> Field k fValues) fValues}
+```
+
+Anyway, I went for the former approach explained above.
+
+And now that I have an abstraction to walk over my map, in principle it is not
+too difficult to do interesting things without explicit looping. I was afraid
+with part 2, both because the comonad would be inefficient (basin computation
+sounds like a good candidate for memoization) and complex to wield.
+
+Thankfully, for the second part, the assumption that each basin has a single
+lowest point and every point of the basin slopes down into it is a life saver:
+I can identify the basin independently for each grid position. I don't know how
+the comonad abstraction would hold up otherwise without becoming too complex
+for my poor little mind to reason about.
+
+And for the first part, surprisingly, it's super fast. Less than 48
+milliseconds. I did not even need to switch out my grid representation from
+nested lists to something more adapted to random access, like the `(Int, Int)`
+map above or nested vectors.
+
+Of course I am well aware that there are likely more straightforward solutions.
+But once I had the comonad abstraction, it really did get out of the way and I
+could focus on the rest! I'm really glad I could give it a spin after reading
+about it here and there.
