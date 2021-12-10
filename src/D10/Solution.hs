@@ -86,6 +86,8 @@ missingDelimiter :: Chunk -> Maybe Delimiter
 missingDelimiter (UnfinishedChunk d _) = Just d
 missingDelimiter _ = Nothing
 
+-- the chunk tree is walked breadth-first, so we need to reverse to get the
+-- deepest unfinished chunks first
 missingDelimiters :: Line -> [Delimiter]
 missingDelimiters = reverse . mapMaybe missingDelimiter . walkLine
 
@@ -123,6 +125,13 @@ closeP = choice $ try . closeDelimP <$> delimiters
     closeDelimP :: Delimiter -> Parser Delimiter
     closeDelimP delim = char (snd . delimiterPair $ delim) $> delim
 
+-- I considered writing a parser for the valid chunk case at first, but
+-- conceptually, even if the narration of the exercise says that a mismatched
+-- or missing delimiter is incorrect input, in our case it is correct input in
+-- that we do things with it.
+--
+-- I am glad I approached it that way, because the second part required
+-- consuming input beyond the first "error".
 chunkDelimP :: Delimiter -> Parser Chunk
 chunkDelimP delim = do
   let (l, r) = delimiterPair delim
