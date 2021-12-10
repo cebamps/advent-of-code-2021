@@ -172,8 +172,18 @@ a)` but got stuck on implementing `duplicate` on the Comonad instance. I guess
 I've made that work now, I'll have to try that later.
 
 ```hs
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleInstances #-}
+
+module Foo where
+
+import Control.Comonad
+import Data.Map (Map, mapWithKey)
+
 type Idx = (Int, Int)
-data Field i a = Field { fFocus :: i, fValues: Map i a }
+data Field i a = Field { fFocus :: i, fValues :: Map i a } deriving Functor
 
 instance Comonad (Field Idx) where
   -- untested. Should return a Field Idx (Field Idx a).
