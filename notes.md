@@ -214,3 +214,15 @@ Of course I am well aware that there are likely more straightforward solutions.
 But once I had the comonad abstraction, it really did get out of the way and I
 could focus on the rest! I'm really glad I could give it a spin after reading
 about it here and there.
+
+## Extra notes on comonads
+
+Might as well jot them down here.
+
+- `Control.Comonad.Store` very much reminds me of Conal Elliott's talk on
+  denotational design applied to a graphics library:
+  https://www.youtube.com/watch?v=bmKYiUOEo2A
+- `experiment` in `ComonadStore` works on any functor, including those that
+  would not be discrete collections. The functor could be a `(->) b` for example:
+  `experiment :: (s -> (b -> s)) -> w a -> b -> a`. In an array, b could be an
+  enum of directions (Up, Down, etc.) for example.
