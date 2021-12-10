@@ -192,6 +192,12 @@ instance Comonad (Field Idx) where
   duplicate Field{..} = Field {fFocus, fValues = mapWithKey (\k a -> Field k fValues) fValues}
 ```
 
+*Note added the next day:* it turns out I could just use
+`Control.Comonad.Store.Pointer` from the package `comonad-extras`. This is
+almost exactly what I was longing for, based on Data.Array. I also just
+discovered about 2D-indexed arrays with the `Ix` instance for tuples. I suppose
+I'll be making use of that at some point in the future!
+
 Anyway, I went for the former approach explained above.
 
 And now that I have an abstraction to walk over my map, in principle it is not
