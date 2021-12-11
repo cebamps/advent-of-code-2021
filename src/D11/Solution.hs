@@ -71,23 +71,24 @@ flash x nf
   | x > 9 = 0 -- has just flashed
   | otherwise = x + nf -- does not matter if we go beyond 9
 
--- Since one flash may trigger more flasehs, this is where the step needs
--- iteration. We count how many updates happened at any given step, to help
--- stopping the iteration. Alternatively, we could compare the fields by
--- equality to find when it stabilizes.
-flashStepIteration :: Field -> (Int, Field)
-flashStepIteration arr =
-  let updates = collecFlashUpdates arr
-   in (length updates, accum flash arr updates)
+-- Since one flash may trigger more flashes, this is where the step needs
+-- iteration. We could compare the fields between iterations to find when it
+-- stabilizes, but we have all the info we need to do so here.
+flashStepIteration :: Field -> Maybe Field
+flashStepIteration arr = case collecFlashUpdates arr of
+  [] -> Nothing
+  updates -> Just $ accum flash arr updates
 
 --- $> let f = fmap (+2) testInput in putStr . printField $ flashStep f
 
+whileJust :: (a -> Maybe a) -> a -> a
+whileJust f x = case f x of
+  Nothing -> x
+  Just x' -> whileJust f x'
+
 -- iterates flashing until stable
 flashStep :: Field -> Field
-flashStep =
-  snd
-    . until ((== 0) . fst) (flashStepIteration . snd)
-    . flashStepIteration
+flashStep = whileJust flashStepIteration
 
 -- performs one full step, tracking the number of flashes in the tuple monad
 step :: Field -> (Sum Int, Field)
