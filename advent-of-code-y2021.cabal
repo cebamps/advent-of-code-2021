@@ -23,6 +23,7 @@ library
       D07.Solution
       D08.Solution
       D09.Solution
+      D10.Alt
       D10.Solution
   other-modules:
       Paths_advent_of_code_y2021
