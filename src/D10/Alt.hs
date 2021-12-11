@@ -2,6 +2,7 @@
 
 module D10.Alt (solve) where
 
+import Control.Monad ((>=>))
 import Data.Either (lefts, rights)
 import Data.List (foldl', sort)
 
@@ -13,17 +14,21 @@ type Stack = [Char]
 
 type ProcessState = Either Error Stack
 
-push :: Char -> ProcessState -> ProcessState
-push = fmap . (:)
+push :: Char -> Stack -> ProcessState
+push x xs = Right (x : xs)
 
-pop :: Char -> ProcessState -> ProcessState
-pop x c =
-  c >>= \case
-    x' : xs | x' == x -> return xs
-    _ -> Left x
+pop :: Char -> Stack -> ProcessState
+pop x = \case
+  x' : xs | x' == x -> return xs
+  _ -> Left x
 
 process :: [Char] -> ProcessState
-process = foldl' (flip op) (Right [])
+process xs = process' xs []
+
+-- Compose a bunch of Kleisli arrows left to right; foldr for early exit. This
+-- one takes an initial stack as argument.
+process' :: [Char] -> Stack -> ProcessState
+process' = foldr ((>=>) . op) return
   where
     op '[' = push ']'
     op '(' = push ')'
