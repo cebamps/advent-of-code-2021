@@ -2,7 +2,7 @@
 
 module D10.Alt (solve) where
 
-import Control.Monad ((>=>))
+import Control.Monad (foldM)
 import Data.Either (lefts, rights)
 import Data.List (foldl', sort)
 
@@ -23,12 +23,10 @@ pop x = \case
   _ -> Left x
 
 process :: [Char] -> ProcessState
-process xs = process' xs []
+process = process' []
 
--- Compose a bunch of Kleisli arrows left to right; foldr for early exit. This
--- one takes an initial stack as argument.
-process' :: [Char] -> Stack -> ProcessState
-process' = foldr ((>=>) . op) return
+process' :: Stack -> [Char] -> ProcessState
+process' = foldM (flip op)
   where
     op '[' = push ']'
     op '(' = push ')'
