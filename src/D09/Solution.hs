@@ -10,13 +10,13 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 
 -- might as well leave my ghcid debug prints
---
+
 -- $> :m + System.IO.Unsafe Data.List
---
+
 --- $> input = unsafePerformIO $ readFile "inputs/d09.txt" >>= parseOrFail parseInput
---
+
 -- $> testInput = unsafePerformIO $ readFile "inputs/d09-test.txt" >>= parseOrFail parseInput
---
+
 -- $> mapM_ print testInput
 
 solve :: String -> IO ()
@@ -89,7 +89,6 @@ maybeEmpty :: Monoid m => Maybe m -> m
 maybeEmpty Nothing = mempty
 maybeEmpty (Just a) = a
 
-
 solve1 :: Grid Int -> Int
 solve1 = getSum . maybeEmpty . foldField (fmap Sum <$> riskFactor)
 
@@ -111,22 +110,19 @@ solve1 = getSum . maybeEmpty . foldField (fmap Sum <$> riskFactor)
 -- 999999
 
 bottomIndex :: Field Int -> Maybe Idx
-bottomIndex = listToMaybe . fmap pos . focusLower
+bottomIndex = listToMaybe . fmap pos . focusDownhill
 
-focusLower :: Field Int -> [Field Int]
--- special cases
-focusLower f
-  | isNothing (extract f) = []
-  | extract f == Just 9 = []
-focusLower f = do
-  -- bit of a hack to safely get to the Int value
-  value <- maybeToList $ extract f
-  let neighbors = (`seeks` f) . idxShift <$> neighborIndexes
-  let lowerNeighbors = filter (maybe False (< value) . extract) neighbors
+focusDownhill :: Field Int -> [Field Int]
+focusDownhill f = maybe [] go $ extract f
+  where
+    go 9 = []
+    go value = do
+      let neighbors = (`seeks` f) . idxShift <$> neighborIndexes
+      let downhillNeighbors = filter (maybe False (< value) . extract) neighbors
 
-  case lowerNeighbors of
-    [] -> return f -- local minimum
-    _ -> lowerNeighbors >>= focusLower -- recurse
+      case downhillNeighbors of
+        [] -> return f -- local minimum
+        _ -> downhillNeighbors >>= focusDownhill -- recurse
 
 basinBottoms :: Grid Int -> [Idx]
 basinBottoms = catMaybes . foldField ((: []) . bottomIndex)
