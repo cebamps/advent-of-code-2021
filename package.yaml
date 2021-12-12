@@ -9,7 +9,6 @@ library:
   dependencies:
     - array
     - comonad
-    - comonad-extras
     - containers
     - parsec
 

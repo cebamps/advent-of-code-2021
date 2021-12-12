@@ -1,15 +1,10 @@
-{-# LANGUAGE TupleSections #-}
-
 module D11.Solution (solve) where
 
 import Control.Monad ((>=>))
 import Data.Array
-import Data.Foldable (find, toList)
 import Data.Function (on)
 import Data.List (group, groupBy, sort)
-import qualified Data.Map.Strict as M
-import Data.Maybe (fromJust)
-import Data.Monoid (Sum (Sum, getSum))
+import Data.Monoid (Sum (..))
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
