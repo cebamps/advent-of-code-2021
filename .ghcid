@@ -1,1 +1,1 @@
---command "stack ghci"
+--command "stack ghci --ghci-options='+RTS -M512m'"
