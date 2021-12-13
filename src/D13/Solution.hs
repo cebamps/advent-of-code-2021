@@ -77,6 +77,7 @@ printLine (x : xs) = replicate x ' ' ++ '#' : printLine (subtract (x + 1) <$> xs
 solve2 :: Input -> String
 solve2 (Input field folds) = do
   let field' = foldl' (flip $ foldFieldWith (&&)) field folds
+  -- assuming we only have true values assigned :)
   printField $ M.keys field'
 
 --- parsing
