@@ -29,7 +29,7 @@ executables:
   d11: { <<: *base-exe, main: d11.hs }
   d12: { <<: *base-exe, main: d12.hs }
   d13: { <<: *base-exe, main: d13.hs }
-# d14: { <<: *base-exe, main: d14.hs }
+  d14: { <<: *base-exe, main: d14.hs }
 # d15: { <<: *base-exe, main: d15.hs }
 # d16: { <<: *base-exe, main: d16.hs }
 # d17: { <<: *base-exe, main: d17.hs }
