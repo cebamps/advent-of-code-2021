@@ -17,20 +17,20 @@ executables:
     source-dirs: exe
     main: d01.hs
     dependencies: advent-of-code-y2021
-  d02: { <<: *base-exe, main: d02.hs }
-  d03: { <<: *base-exe, main: d03.hs }
-  d04: { <<: *base-exe, main: d04.hs }
-  d05: { <<: *base-exe, main: d05.hs }
-  d06: { <<: *base-exe, main: d06.hs }
-  d07: { <<: *base-exe, main: d07.hs }
-  d08: { <<: *base-exe, main: d08.hs }
-  d09: { <<: *base-exe, main: d09.hs }
-  d10: { <<: *base-exe, main: d10.hs }
-  d11: { <<: *base-exe, main: d11.hs }
-  d12: { <<: *base-exe, main: d12.hs }
-  d13: { <<: *base-exe, main: d13.hs }
-  d14: { <<: *base-exe, main: d14.hs }
-# d15: { <<: *base-exe, main: d15.hs }
+# d02: { <<: *base-exe, main: d02.hs }
+# d03: { <<: *base-exe, main: d03.hs }
+# d04: { <<: *base-exe, main: d04.hs }
+# d05: { <<: *base-exe, main: d05.hs }
+# d06: { <<: *base-exe, main: d06.hs }
+# d07: { <<: *base-exe, main: d07.hs }
+# d08: { <<: *base-exe, main: d08.hs }
+# d09: { <<: *base-exe, main: d09.hs }
+# d10: { <<: *base-exe, main: d10.hs }
+# d11: { <<: *base-exe, main: d11.hs }
+# d12: { <<: *base-exe, main: d12.hs }
+# d13: { <<: *base-exe, main: d13.hs }
+# d14: { <<: *base-exe, main: d14.hs }
+  d15: { <<: *base-exe, main: d15.hs }
 # d16: { <<: *base-exe, main: d16.hs }
 # d17: { <<: *base-exe, main: d17.hs }
 # d18: { <<: *base-exe, main: d18.hs }
