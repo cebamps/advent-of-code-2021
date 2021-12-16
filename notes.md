@@ -232,3 +232,58 @@ Might as well jot them down here.
   would not be discrete collections. The functor could be a `(->) b` for example:
   `experiment :: (s -> (b -> s)) -> w a -> b -> a`. In an array, b could be an
   enum of directions (Up, Down, etc.) for example.
+
+
+# Day 15
+
+First one I'm very dissatisfied with! Step two ran very slowly, (around 30
+minutes). I tried profiling, and it *seems* to indicate that the find-minimum
+step of Dijkstra is to blame for the slowness, but... I'll bet the array data
+structure I use to store the work in progress paths is to blame. Either because
+of copying, or because of laziness? I don't think it's the laziness, because
+the way I update it with accum is clearly documented to be strict in the
+application of the accumulation function.
+
+Here's the relevant excerpt from a profile run toward the beginning of part 2:
+
+```
+	   d15 +RTS -p -RTS
+
+	total time  =        6.84 secs   (6844 ticks @ 1000 us, 1 processor)
+	total alloc = 7,732,470,936 bytes  (excludes profiling overheads)
+
+COST CENTRE        MODULE       SRC                                  %time %alloc
+
+new-current        D15.Solution src/D15/Solution.hs:59:45-122         91.0   89.1
+updateDistances    D15.Solution src/D15/Solution.hs:(64,1)-(73,51)     4.7    8.9
+expand.\           D15.Solution src/D15/Solution.hs:59:70-98           3.6    0.0
+tileRisk.newAssocs D15.Solution src/D15/Solution.hs:(106,5)-(112,7)    0.3    1.1
+
+
+                                                                                                                          individual      inherited
+COST CENTRE                               MODULE                  SRC                                  no.     entries  %time %alloc   %time %alloc
+
+MAIN                                      MAIN                    <built-in>                           227           0    0.0    0.0   100.0  100.0
+...
+       expand                             D15.Solution            src/D15/Solution.hs:(56,1)-(61,97)   485         345    0.0    0.0    99.3   98.0
+        expand.distances'                 D15.Solution            src/D15/Solution.hs:57:7-95          492         345    0.0    0.0     4.7    8.9
+         new-distances                    D15.Solution            src/D15/Solution.hs:57:48-95         493         345    0.0    0.0     4.7    8.9
+          currentEdge                     D15.Solution            src/D15/Solution.hs:45:5-15          494         345    0.0    0.0     0.0    0.0
+          updateDistances                 D15.Solution            src/D15/Solution.hs:(64,1)-(73,51)   495         345    4.7    8.9     4.7    8.9
+           updateDistances.distanceUpdate D15.Solution            src/D15/Solution.hs:69:5-71          502         698    0.0    0.0     0.0    0.0
+            distances                     D15.Solution            src/D15/Solution.hs:47:5-13          503         339    0.0    0.0     0.0    0.0
+           updateDistances.updateElem     D15.Solution            src/D15/Solution.hs:(71,5)-(73,51)   504         698    0.0    0.0     0.0    0.0
+           distances                      D15.Solution            src/D15/Solution.hs:47:5-13          496         345    0.0    0.0     0.0    0.0
+           updateDistances.nidx           D15.Solution            src/D15/Solution.hs:67:5-41          497         345    0.0    0.0     0.0    0.0
+            updateDistances.keepIdx       D15.Solution            src/D15/Solution.hs:66:5-70          499        1380    0.0    0.0     0.0    0.0
+             unvisited                    D15.Solution            src/D15/Solution.hs:46:5-13          501        1336    0.0    0.0     0.0    0.0
+            neighbors                     D15.Solution            src/D15/Solution.hs:85:1-65          498         345    0.0    0.0     0.0    0.0
+           updateDistances.keepIdx        D15.Solution            src/D15/Solution.hs:66:5-70          500           0    0.0    0.0     0.0    0.0
+        expand.unvisited'                 D15.Solution            src/D15/Solution.hs:58:7-93          486         345    0.0    0.0     0.0    0.0
+         new-unvisited                    D15.Solution            src/D15/Solution.hs:58:48-93         487         345    0.0    0.0     0.0    0.0
+          currentEdge                     D15.Solution            src/D15/Solution.hs:45:5-15          488         345    0.0    0.0     0.0    0.0
+          unvisited                       D15.Solution            src/D15/Solution.hs:46:5-13          489         345    0.0    0.0     0.0    0.0
+        new-current                       D15.Solution            src/D15/Solution.hs:59:45-122        490         345   91.0   89.1    94.6   89.1
+         expand.\                         D15.Solution            src/D15/Solution.hs:59:70-98         491    86102443    3.6    0.0     3.6    0.0
+         idxMin                           D15.Solution            src/D15/Solution.hs:(52,1)-(53,55)   505         345    0.0    0.0     0.0    0.0
+```
