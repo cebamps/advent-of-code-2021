@@ -287,3 +287,17 @@ MAIN                                      MAIN                    <built-in>    
          expand.\                         D15.Solution            src/D15/Solution.hs:59:70-98         491    86102443    3.6    0.0     3.6    0.0
          idxMin                           D15.Solution            src/D15/Solution.hs:(52,1)-(53,55)   505         345    0.0    0.0     0.0    0.0
 ```
+
+
+# Day 16
+
+I would have liked to spend a bit more time to explore the
+[`data-fix`](https://hackage.haskell.org/package/data-fix/) package and mabye
+[`recursion-schemes`](https://hackage.haskell.org/package/recursion-schemes/)
+also, to deal with AST representations and recursions a little more elegantly.
+The packets and their general approach to AST representation could help me
+abstract away a few things:
+
+ - Defining a common data type between packets and expressions.
+ - Folding over the tree of packets annotated with version info.
+ - Recursively computing the value of the expression.
