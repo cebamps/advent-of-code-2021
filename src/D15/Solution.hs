@@ -20,7 +20,7 @@ import Debug.Trace
 solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
-  --print $ solve1 input
+  print $ solve1 input
   print $ solve2 input
 
 type Idx = (Int, Int)
