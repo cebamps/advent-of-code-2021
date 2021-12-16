@@ -3,6 +3,7 @@
 
 module D16.Solution (solve) where
 
+import Control.Applicative ((<**>))
 import Control.Monad ((>=>))
 import Data.Foldable (fold, foldl')
 import Data.List (elemIndex, intercalate)
@@ -209,12 +210,15 @@ subParseP parser s = case parse parser "subparse" s of
 
 literalPayloadP :: Parser Int
 literalPayloadP = do
-  leadingGroups <- many $ groupWithLeaderP '1'
-  finalGroup <- option [] $ groupWithLeaderP '0'
-  return $ bin2int $ concat leadingGroups ++ finalGroup
+  groups <- manyTillIncluding (groupWithLeaderP '1') (groupWithLeaderP '0')
+  return $ bin2int $ concat groups
   where
     groupWithLeaderP :: Char -> Parser [Char]
     groupWithLeaderP c = char c *> count 4 binDigitP
+    manyTillIncluding :: ParsecT s u m a -> ParsecT s u m a -> ParsecT s u m [a]
+    manyTillIncluding p pend = many p <**> fmap (flip snoc) pend
+    snoc :: [a] -> a -> [a]
+    snoc xs x = xs ++ [x]
 
 packetHeaderP :: Parser PacketMeta
 packetHeaderP = do
