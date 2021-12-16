@@ -11,6 +11,7 @@ import Data.Set (member)
 import qualified Data.Set as S
 import Text.Parsec
 import Text.Parsec.String (Parser)
+import Debug.Trace
 
 -- $> :m + System.IO.Unsafe
 
@@ -50,9 +51,10 @@ idxMin xs = Just . fst . minimumBy (comparing snd) $ xs
 
 expand :: Risk -> SearchState -> Maybe SearchState
 expand risk search = do
-  let distances' = updateDistances risk search (currentEdge search)
-  let unvisited' = currentEdge search `S.delete` unvisited search
-  currentEdge' <- idxMin . mapMaybe (\x -> sequenceA (x, distances' ! x)) . S.elems $ unvisited'
+  let distances' = {-# SCC "new-distances" #-} updateDistances risk search (currentEdge search)
+  let unvisited' = {-# SCC "new-unvisited" #-} currentEdge search `S.delete` unvisited search
+  -- this is the pain point, and indeed this is a known fact of this alg
+  currentEdge' <- {-# SCC "new-current" #-} idxMin . mapMaybe (\x -> sequenceA (x, distances' ! x)) . S.elems $ unvisited'
 
   return SearchState {unvisited = unvisited', distances = distances', currentEdge = currentEdge'}
 
@@ -71,6 +73,7 @@ updateDistances risk search idx = accum updateElem (distances search) (distanceU
 -- indexing the array forces computation
 expandUntilDone :: Risk -> SearchState -> SearchState
 expandUntilDone risk search = case expand risk search of
+  _ | traceShow (S.size $ unvisited search) False -> undefined
   Nothing -> search
   Just search' -> expandUntilDone risk search'
 
