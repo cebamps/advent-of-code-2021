@@ -301,3 +301,37 @@ abstract away a few things:
  - Defining a common data type between packets and expressions.
  - Folding over the tree of packets annotated with version info.
  - Recursively computing the value of the expression.
+
+
+# Day 17
+
+Part 1 was fun, pen and paper was enough to get the solution in closed form.
+And there would not have been much reuse in part 2 if I had implemented more
+programmatically.
+
+In fact, solving part 1 gave me all the material I needed to make part 2
+finite.
+
+Some analysis let me separate the problem of part 2 in two to avoid quadratic
+effects when going from the test case to the actual input.
+
+But as a result, I find my solution to part 2 very verbose yet not quite
+readable.
+
+I hit a few obstacles along the way. The most troubling one turned out to be in
+the most fundamental piece of the solution, which is the computation of the
+trajectory. When evolving a coordinate, I started with (0, v0), which is the
+current position and velocity, and evolved that until the velocity dropped to
+zero. But the last steps are `(x_final - 1, 1) -> (x_final, 0)`. My unfold
+dropped the last point, so I considered it stopped at `x_final - 1`.
+
+For some reason this gave me all the correct trajectories for the test input.
+
+Of course, after seeing I had too many trajectories and figuring I would check
+them with a purpose-built debug function, I saw that they were all fine. But
+that helped me pinpoint the root cause. I don't know what I would have done if
+I had too little trajectories :)
+
+Another funny obstacle I had was that I needed to deduplicate the velocities. I
+didn't think of it at first, but one initial velocity (vx,vy) can hit the area
+multiple times.
