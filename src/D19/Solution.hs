@@ -3,7 +3,7 @@
 
 module D19.Solution (solve) where
 
-import D19.Geometry (Rotation, Triple, add3, idRotation, lift3, rotate, rotationGroup, sub3)
+import D19.Geometry (Rotation, Triple, add3, idRotation, lift3, map3, rotate, rotationGroup, sub3)
 import Data.Ix (inRange)
 import Data.Monoid (First (First, getFirst))
 import qualified Data.Set as S
@@ -192,8 +192,13 @@ solve1 input =
 
 --- part 2
 
-solve2 :: a -> ()
-solve2 = const ()
+manhattan :: Num a => Triple a -> Triple a -> a
+manhattan u v = let (x, y, z) = map3 abs (u `sub3` v) in x + y + z
+
+solve2 :: Input -> Int
+solve2 input =
+  let scanners = snd . fst <$> accumulatePlacedRegions input
+   in maximum [manhattan s1 s2 | s1 <- scanners, s2 <- scanners]
 
 --- parsing
 
