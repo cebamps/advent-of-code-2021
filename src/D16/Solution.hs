@@ -15,20 +15,6 @@ import Text.Parsec.String (Parser)
 
 -- $> testInput = unsafePerformIO $ readFile "inputs/d16-test.txt" >>= parseOrFail inputP
 
--- header (bits)
--- xxxyyy
---
--- x: version
--- y: type id
---
--- types:
---  4: literal value (number): sequence of 5-bit groups, first bit encoding
---  continuation (1) or last word (0), four remaining concatenate to the binary
---  representation of the number
---
---  other: operator. Header followed by one bit
---
-
 -- this sequencing is kind of weird, no?
 parseInputOrFail :: String -> IO Token
 parseInputOrFail = parseOrFail binInputP >=> parseOrFail packetP
