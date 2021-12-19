@@ -16,7 +16,7 @@ where
 
 import Data.Bifunctor (Bifunctor (first))
 import Data.Bits (xor)
-import Data.List (delete)
+import Data.List ((\\))
 
 --- Triples of values
 
@@ -54,8 +54,9 @@ cross x y = let z = cross' x y in (not $ oriented x y z, z)
 
 -- cross product without the sign
 cross' :: Axis -> Axis -> Axis
-cross' x y | x == y = error "cross received the same axis twice"
-cross' x y = head . delete x . delete y $ [X, Y, Z]
+cross' u v = case [X, Y, Z] \\ [u, v] of
+  [w] -> w
+  _ -> error "cross received the same axis twice"
 
 oriented :: Axis -> Axis -> Axis -> Bool
 oriented x y z | x == y || y == z || z == x = error "got the same axis twice"
