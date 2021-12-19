@@ -49,6 +49,8 @@ type ScannerRegion = S.Set Beacon
 
 type Input = [ScannerRegion]
 
+type Placement = (Transformation, ScannerRegion)
+
 --- part 1
 
 -- Strategy: accumulate "placed" regions into a list. Those regions have their
@@ -86,11 +88,11 @@ takeSet s = [(x, S.delete x s) | x <- S.elems s]
 -- I could take a more efficient approach by matching against unplaced regions
 -- if I can not find a match on placed regions, but then I would have to
 -- compose transformations and handle more nested data structures.
-accumulatePlacedRegions :: [ScannerRegion] -> [(Transformation, ScannerRegion)]
+accumulatePlacedRegions :: [ScannerRegion] -> [Placement]
 accumulatePlacedRegions [] = []
 accumulatePlacedRegions (reg : regs) = let start = [(idTr, reg)] in go start regs
   where
-    go :: [(Transformation, ScannerRegion)] -> [ScannerRegion] -> [(Transformation, ScannerRegion)]
+    go :: [Placement] -> [ScannerRegion] -> [Placement]
     go ps [] = ps
     go ps remainingRegs = case pickBy (pushPlacedRegion ps) remainingRegs of
       Nothing -> error "could not find any region that aligns"
@@ -98,12 +100,12 @@ accumulatePlacedRegions (reg : regs) = let start = [(idTr, reg)] in go start reg
     idTr :: Transformation
     idTr = (idRotation, (0, 0, 0))
 
-pushPlacedRegion :: [(Transformation, ScannerRegion)] -> ScannerRegion -> Maybe [(Transformation, ScannerRegion)]
+pushPlacedRegion :: [Placement] -> ScannerRegion -> Maybe [Placement]
 pushPlacedRegion ps reg = do
   p <- placeRegion ps reg
   return $ ps ++ [p]
 
-placeRegion :: [(Transformation, ScannerRegion)] -> ScannerRegion -> Maybe (Transformation, ScannerRegion)
+placeRegion :: [Placement] -> ScannerRegion -> Maybe (Transformation, ScannerRegion)
 placeRegion refs reg = firstJust $ do
   ((_, origin), ref) <- refs
   return $ matchRegions origin ref reg
