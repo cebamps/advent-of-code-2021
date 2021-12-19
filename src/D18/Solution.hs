@@ -74,9 +74,6 @@ instance PPrint a => PPrint (LR a) where
   pprint (L x) = "L " ++ pprint x
   pprint (R x) = "R " ++ pprint x
 
-instance PPrint a => PPrint (Zip a) where
-  pprint (p :=| t) = pprint p ++ " :=| " ++ pprint t
-
 getLR :: LR a -> a
 getLR (L x) = x
 getLR (R x) = x
@@ -87,6 +84,9 @@ getLR (R x) = x
 -- constructor name from Tarmo Uustalu so I have a reference to go back to if I
 -- get lost. https://cs.ioc.ee/~tarmo/tsem05/uustalu0812-slides.pdf
 data Zip a = [LR (Tree a)] :=| Tree a deriving (Eq, Show)
+
+instance PPrint a => PPrint (Zip a) where
+  pprint (p :=| t) = pprint p ++ " :=| " ++ pprint t
 
 zipIsL :: Zip a -> Bool
 zipIsL ((L _ : _) :=| _) = True
