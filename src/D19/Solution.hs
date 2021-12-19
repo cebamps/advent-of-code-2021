@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module D19.Solution (solve) where
 

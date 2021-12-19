@@ -1,4 +1,18 @@
-module D19.Geometry where
+{-# OPTIONS_GHC -Wall #-}
+
+module D19.Geometry
+  ( Triple,
+    add3,
+    sub3,
+    lift3,
+    map3,
+    --
+    Rotation,
+    rotationGroup,
+    idRotation,
+    rotate,
+  )
+where
 
 import Data.Bifunctor (Bifunctor (first))
 import Data.Bits (xor)
@@ -97,8 +111,8 @@ rotationGroup =
 
 -- $> length rotationGroup == 24
 
-invertPermutation :: Triple Axis -> Triple Axis
-invertPermutation = map3On (map3 locate (X, Y, Z))
+_invertPermutation :: Triple Axis -> Triple Axis
+_invertPermutation = map3On (map3 locate (X, Y, Z))
   where
     locate :: Eq a => a -> Triple a -> Axis
     locate x t | x == getAxis X t = X
@@ -107,9 +121,9 @@ invertPermutation = map3On (map3 locate (X, Y, Z))
     locate _ _ = error "element not in triple"
 
 -- that's a semidirect product
-invertRotation :: Rotation -> Rotation
-invertRotation (Rotation p fs) =
-  let p' = invertPermutation p
+_invertRotation :: Rotation -> Rotation
+_invertRotation (Rotation p fs) =
+  let p' = _invertPermutation p
       fs' = permute p fs
    in Rotation p' fs'
 
