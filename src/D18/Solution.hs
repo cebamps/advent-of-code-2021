@@ -133,7 +133,7 @@ zipChildren (path :=| Pair l r) = [zl :=| l, zr :=| r]
     zl = L r : path
     zr = R l : path
 
--- produce a list of all zips, depth-first
+-- produce a list of all zips, in pre-order
 walkZip :: Tree a -> [Zip a]
 walkZip = go . toZip
   where
