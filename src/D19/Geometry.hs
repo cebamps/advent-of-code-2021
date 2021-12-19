@@ -1,6 +1,7 @@
 module D19.Geometry where
 
 import Data.Bifunctor (Bifunctor (first))
+import Data.Bits (xor)
 import Data.List (delete)
 
 --- Triples of values
@@ -81,7 +82,7 @@ type OrientedAxis = (Axis, Bool)
 -- moves the forward axis to +x and the up axis to +z.
 makeRotation :: OrientedAxis -> OrientedAxis -> Rotation
 makeRotation (x', flipX) (z', flipZ) =
-  let (flipY, y') = first not $ cross x' z'
+  let (flipY, y') = first (flipX `xor` flipZ `xor`) $ cross z' x'
    in Rotation (x', y', z') (flipX, flipY, flipZ)
 
 rotationGroup :: [Rotation]
