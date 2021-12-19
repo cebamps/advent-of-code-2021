@@ -158,7 +158,7 @@ data Rule a = Explode (Zip a) | Split (Zip a) deriving (Eq, Show)
 
 type SnailfishRule = Rule Int
 
-toRule :: Zip Int -> Maybe (Rule Int)
+toRule :: Zip Int -> Maybe SnailfishRule
 toRule z@(p :=| (Pair (Leaf _) (Leaf _))) | length p > 3 = Just $ Explode z
 toRule z@(_ :=| Leaf x) | x >= 10 = Just $ Split z
 toRule _ = Nothing
@@ -174,7 +174,7 @@ instance Semigroup (FirstRule a) where
 instance Monoid (FirstRule a) where
   mempty = FirstRule Nothing
 
-findFirstRule :: Tree Int -> Maybe SnailfishRule
+findFirstRule :: SnailfishNumber -> Maybe SnailfishRule
 findFirstRule = getFirstRule . foldMap (FirstRule . toRule) . walkZip
 
 -- the split operation, with focus on the leaf to split
