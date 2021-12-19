@@ -7,7 +7,6 @@ import D19.Geometry (Rotation, Triple, add3, idRotation, lift3, rotate, rotation
 import Data.Ix (inRange)
 import Data.Monoid (First (First, getFirst))
 import qualified Data.Set as S
-import Debug.Trace
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
@@ -18,7 +17,7 @@ import Text.Parsec.String (Parser)
 solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
-  debugPlacement input
+  -- _debugPlacement input
   print $ solve1 input
   print $ solve2 input
 
@@ -93,11 +92,8 @@ accumulatePlacedRegions (reg : regs) = let start = [(idTr, reg)] in go start reg
   where
     go :: [(Transformation, ScannerRegion)] -> [ScannerRegion] -> [(Transformation, ScannerRegion)]
     go ps [] = ps
-    --go ps _ | traceShow (last ps) False = undefined
     go ps remainingRegs = case pickBy (pushPlacedRegion ps) remainingRegs of
-      Nothing ->
-       traceShow (ps, remainingRegs) $
-        error "could not find any region that aligns"
+      Nothing -> error "could not find any region that aligns"
       Just (ps', remainingRegs') -> go ps' remainingRegs'
     idTr :: Transformation
     idTr = (idRotation, (0, 0, 0))
@@ -141,13 +137,12 @@ matchRotatedRegions origin ref reg = firstJust $ do
   let reg'Shifted = S.map (add3 placementShift) reg'
   let (rlb, rub) = getIntersection relShift
   let bounds = (add3 origin rlb, add3 origin rub)
-  --traceShow (vRef, vReg, shift) $
   return $
     -- beware: we have taken one point out so the minimum overlap is 11 points,
     -- not 12
     if regsMatch 11 bounds ref' reg'Shifted
-      -- vRef is vReg shifted in place
-      then Just (placementShift, vRef `S.insert` reg'Shifted)
+      then -- vRef is vReg shifted in place
+        Just (placementShift, vRef `S.insert` reg'Shifted)
       else Nothing
   where
     -- here's where the magic happens
@@ -156,8 +151,7 @@ matchRotatedRegions origin ref reg = firstJust $ do
       let filterReg = S.filter (inRange bounds)
           r1f = filterReg r1
           r2f = filterReg r2
-       in --traceShow (S.size r1f) $
-          S.size r1f >= expectedN && r1f == r2f
+       in S.size r1f >= expectedN && r1f == r2f
 
 -- Get the boundaries of the region intersection in the reference coordinates
 -- relative to the first region's coordinate system.
@@ -184,8 +178,8 @@ getIntersection s =
 
 --- $> getIntersection (2000,0,0)
 
-debugPlacement :: Input -> IO ()
-debugPlacement input = do
+_debugPlacement :: Input -> IO ()
+_debugPlacement input = do
   let sol = accumulatePlacedRegions input
   let fullMap = S.unions (fmap snd sol)
   print sol
