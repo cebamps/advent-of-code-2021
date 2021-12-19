@@ -18,8 +18,9 @@ solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
   -- _debugPlacement input
-  print $ solve1 input
-  print $ solve2 input
+  let placements = accumulatePlacedRegions input
+  print $ solve1 placements
+  print $ solve2 placements
 
 -- Approach: find a quick way to determine whether and how two regions overlap.
 -- We have 35 regions in total in our input, which makes 595 unordered pairs.
@@ -187,19 +188,17 @@ _debugPlacement input = do
   print sol
   print $ S.toList fullMap
 
-solve1 :: Input -> Int
-solve1 input =
-  let placement = accumulatePlacedRegions input
-   in S.size . S.unions . fmap snd $ placement
+solve1 :: [Placement] -> Int
+solve1 = S.size . S.unions . fmap snd
 
 --- part 2
 
 manhattan :: Num a => Triple a -> Triple a -> a
 manhattan u v = let (x, y, z) = map3 abs (u `sub3` v) in x + y + z
 
-solve2 :: Input -> Int
-solve2 input =
-  let scanners = snd . fst <$> accumulatePlacedRegions input
+solve2 :: [Placement] -> Int
+solve2 placements =
+  let scanners = snd . fst <$> placements
    in maximum [manhattan s1 s2 | s1 <- scanners, s2 <- scanners]
 
 --- parsing
