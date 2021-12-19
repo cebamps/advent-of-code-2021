@@ -335,3 +335,43 @@ I had too little trajectories :)
 Another funny obstacle I had was that I needed to deduplicate the velocities. I
 didn't think of it at first, but one initial velocity (vx,vy) can hit the area
 multiple times.
+
+
+# Day 18
+
+I spent a while reading things about zippers and trees.
+
+I reckon trees with no values on internal nodes are relatively uncommon. I saw
+slides from Edward Kmett calling them "leafy trees" so let's call them that.
+
+It seems that unlike "actual" binary trees, leafy trees are not
+straightforwardly comonadic: if I have a leafy tree of `a`s, I can't have a
+`duplicate` producing something interesting on each node because only the `a`
+values get changed to leafy trees. With binary trees on the other hand,
+internal nodes can also contain themselves.
+
+After exloring for some time for general typeclasses that I might reuse or
+define, I decided to just build my zipper data type and tree walking methods as
+standalones.
+
+I'm a bit sad though, because my `walkZip` function pretty much folds over a
+tree of zippers, though I never get to reify that tree because I would have to
+define a separate data type for binary trees with values on internal nodes.
+
+I also had a brief look at lenses (in particular `Control.Zipper` in the
+`zippers` package), but I would rather play with that on a smaller, less
+recursive problem. The API looks nice though, for what little I understand of
+it.
+
+For the record, I considered an alternate linear data structure that would be
+explicitly indexable, and would contain the numbers + some location information
+(depth, mostly). This would let me easily find the neighbors of any given leaf.
+I would need efficient insertion / deletion too, to apply the rules.
+`Data.Sequence` would work, I suppose?
+
+Some nice references were useful:
+
+- https://cs.ioc.ee/~tarmo/tsem05/uustalu0812-slides.pdf
+- https://wiki.haskell.org/Zipper
+- https://stackoverflow.com/questions/25519767/how-to-make-a-binary-tree-zipper-an-instance-of-comonad
+- https://stackoverflow.com/questions/25554062/zipper-comonads-generically
