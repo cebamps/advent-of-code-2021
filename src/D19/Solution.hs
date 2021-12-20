@@ -9,6 +9,9 @@ import qualified Data.Set as S
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
+requiredOverlap :: Int
+requiredOverlap = 12
+
 -- $> :m + System.IO.Unsafe
 
 -- $> testInput = unsafePerformIO $ readFile "inputs/d19-test.txt" >>= parseOrFail inputP
@@ -122,8 +125,13 @@ matchRegions origin ref reg = firstJust $ do
 -- takes a rotated region, returns a transformed one + the shift
 matchRotatedRegions :: Shift -> ScannerRegion -> ScannerRegion -> Maybe (Shift, ScannerRegion)
 matchRotatedRegions origin ref reg = firstJust $ do
-  -- extract one point from each region
-  (vRef, ref') <- takeSet ref
+  -- extract one point from each region.
+  -- Nice optimization borrowed from elsewhere after looking for other
+  -- solutions online: once we have 11 points left from the reference set,
+  -- there's no need to try and match the rest. Indeed, if we find a successful
+  -- match, there will be at least 12 points of overlap, which means we would
+  -- have tried that pairing of (vRef, vReg) before and succeeded.
+  (vRef, ref') <- take (S.size ref - requiredOverlap + 1) $ takeSet ref
   (vReg, reg') <- takeSet reg
   -- Shifting transformation to apply to move vReg onto vRef. The shift is the
   -- vector joining the origin of the reference region to the origin of the
@@ -142,7 +150,7 @@ matchRotatedRegions origin ref reg = firstJust $ do
   return $
     -- beware: we have taken one point out so the minimum overlap is 11 points,
     -- not 12
-    if regsMatch 11 bounds ref' reg'Shifted
+    if regsMatch (requiredOverlap - 1) bounds ref' reg'Shifted
       then -- vRef is vReg shifted in place
         Just (placementShift, vRef `S.insert` reg'Shifted)
       else Nothing
