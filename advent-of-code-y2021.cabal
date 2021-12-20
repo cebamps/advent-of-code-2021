@@ -37,6 +37,7 @@ library
       D18.Utility
       D19.Geometry
       D19.Solution
+      D20.Solution
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:
@@ -47,6 +48,7 @@ library
     , comonad
     , containers
     , parsec
+    , vector
   default-language: Haskell2010
 
 executable d01
@@ -249,6 +251,17 @@ executable d18
 
 executable d19
   main-is: d19.hs
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      exe
+  build-depends:
+      advent-of-code-y2021
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+executable d20
+  main-is: d20.hs
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:

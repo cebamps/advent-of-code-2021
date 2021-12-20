@@ -11,6 +11,7 @@ library:
     - comonad
     - containers
     - parsec
+    - vector
 
 executables:
   d01: &base-exe
@@ -35,7 +36,7 @@ executables:
   d17: { <<: *base-exe, main: d17.hs }
   d18: { <<: *base-exe, main: d18.hs }
   d19: { <<: *base-exe, main: d19.hs }
-# d20: { <<: *base-exe, main: d20.hs }
+  d20: { <<: *base-exe, main: d20.hs }
 # d21: { <<: *base-exe, main: d21.hs }
 # d22: { <<: *base-exe, main: d22.hs }
 # d23: { <<: *base-exe, main: d23.hs }
