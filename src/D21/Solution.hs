@@ -84,6 +84,22 @@ type Score = Int
 
 type Universes = M.Map (Score, Position) Int
 
+data PlayerState = PlayerState {pWon :: Int, pUniverses :: Universes} deriving (Eq, Show)
+
+data GameState = GameState {p1State :: PlayerState, p2State :: PlayerState} deriving (Eq, Show)
+
+initialGameState :: Input -> GameState
+initialGameState (p1Pos, p2Pos) = GameState (initialPlayerState p1Pos) (initialPlayerState p2Pos)
+
+initialUniverse :: Int -> Universes
+initialUniverse pos = M.singleton (0, pos) 1
+
+initialPlayerState :: Int -> PlayerState
+initialPlayerState = PlayerState 0 . initialUniverse
+
+pUniverseCount :: PlayerState -> Int
+pUniverseCount = M.foldl' (+) 0 . pUniverses
+
 evolveUniverses :: Universes -> Universes
 evolveUniverses = M.fromListWith (+) . concatMap outcomes . M.assocs
   where
@@ -111,43 +127,29 @@ postSelect u =
       stoppedCount = M.foldl' (+) 0 stoppedU
    in (stoppedCount, continuingU)
 
-data PlayerState = PlayerState {pWon :: Int, pUniverses :: Universes} deriving (Eq, Show)
-
-data GameState = GameState {p1State :: PlayerState, p2State :: PlayerState} deriving (Eq, Show)
-
-pUniverseCount :: PlayerState -> Int
-pUniverseCount = M.foldl' (+) 0 . pUniverses
-
+-- takes (other player, current player) to produce the next current player's
+-- state
 stepPlayerState :: (PlayerState, PlayerState) -> PlayerState
 stepPlayerState (otherP, PlayerState {pUniverses = u, pWon = won}) =
   let (wonInc, u') = (postSelect . evolveUniverses) u
       multiplicity = pUniverseCount otherP
    in PlayerState {pWon = won + multiplicity * wonInc, pUniverses = u'}
 
-endGame :: PlayerState -> Bool
-endGame = M.null . pUniverses
-
 -- I guess this is where lenses come in handy. The player state update function
 -- receives the other player and current player as a tuple, in that order.
-updateGameState ::
+mkPlayerUpdater ::
   Functor f =>
   ((PlayerState, PlayerState) -> f PlayerState) ->
   (Player -> GameState -> f GameState)
-updateGameState f P1 gs = (\s -> gs {p1State = s}) <$> f ((p2State &&& p1State) gs)
-updateGameState f P2 gs = (\s -> gs {p2State = s}) <$> f ((p1State &&& p2State) gs)
+mkPlayerUpdater f P1 gs = (\s -> gs {p1State = s}) <$> f ((p2State &&& p1State) gs)
+mkPlayerUpdater f P2 gs = (\s -> gs {p2State = s}) <$> f ((p1State &&& p2State) gs)
 
 -- fancy! Arrows and Functors working their magic
 stepGameState :: Player -> GameState -> (Bool, GameState)
-stepGameState = updateGameState $ (endGame &&& id) . stepPlayerState
-
-initialGameState :: Input -> GameState
-initialGameState (p1Pos, p2Pos) = GameState (initialPlayerState p1Pos) (initialPlayerState p2Pos)
-
-initialUniverse :: Int -> Universes
-initialUniverse pos = M.singleton (0, pos) 1
-
-initialPlayerState :: Int -> PlayerState
-initialPlayerState = PlayerState 0 . initialUniverse
+stepGameState = mkPlayerUpdater $ (isEndGame &&& id) . stepPlayerState
+  where
+    isEndGame :: PlayerState -> Bool
+    isEndGame = M.null . pUniverses
 
 runGame :: GameState -> GameState
 runGame = go P1

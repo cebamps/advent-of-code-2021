@@ -17,7 +17,7 @@ We can evolve the two players independently and in alternation. Assume no one
 has won yet -- there is no postselection yet at that stage, and the states of
 the players are truly independent. Now if at one round some of the 2-player
 states reach a stopping condition (i.e., the player won), we can separate the
-states where this has happened from the one where it has not. But since this
+states where this has happened from the ones where it has not. But since this
 separation only involves looking at the state of the player who just played,
 the total state remains in product form. Indeed, schematically, assuming p2
 just played and before we apply postselection:
@@ -71,11 +71,11 @@ function above for the given state of player i)
 
 (this is Pascal's triangle, by the way)
 
-What can we say happens after Player 1 has played round 3? There are 8 player 1
-universes (fourth line of our Pascal triangle) and 4 player 2 universes (third
+What can we say happens after Player 1 has played round 3? There are 8 Player 1
+universes (fourth line of our Pascal triangle) and 4 Player 2 universes (third
 line), so 32 universes total in the product. In 4\*4 universes Player 1 has
 reached score 5 or above and won, while in the remaining ones they haven't.
-Hence, we will write down 16 wins for player 1 and resume the game with these
+Hence, we will write down 16 wins for Player 1 and resume the game with these
 postselected universe counts, amounting to our 16 remaining universes:
 
 ```
