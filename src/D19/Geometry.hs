@@ -121,7 +121,6 @@ _invertPermutation = map3On (map3 locate (X, Y, Z))
     locate x t | x == getAxis Z t = Z
     locate _ _ = error "element not in triple"
 
--- that's a semidirect product
 _invertRotation :: Rotation -> Rotation
 _invertRotation (Rotation p fs) =
   let p' = _invertPermutation p
