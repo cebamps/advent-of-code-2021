@@ -1,8 +1,9 @@
+{-# OPTIONS_GHC -Wall #-}
+
 module D23.Graph where
 
-import Data.Bifunctor (Bifunctor (first), second)
+import Data.Bifunctor (first)
 import qualified Data.Set as S
-import Debug.Trace (traceShow)
 
 -- Implements the sparse version of Dijkstra's algorithm, assuming an integer
 -- score.
@@ -40,7 +41,7 @@ dijkstra' end adj st = case popMinimum st of
 -- it
 popMinimum :: Ord a => SDState a -> ((Score, a), SDState a)
 popMinimum st =
-  let (x, e') = deleteFindMinWhile (not . (`S.member` visited st) . snd) (edge st)
+  let (x, e') = deleteFindMinWhile ((`S.member` visited st) . snd) (edge st)
    in ( x,
         SDState
           { visited = snd x `S.insert` visited st,
@@ -50,9 +51,9 @@ popMinimum st =
 
 -- will error when called on the empty set
 deleteFindMinWhile :: (a -> Bool) -> S.Set a -> (a, S.Set a)
-deleteFindMinWhile pred s = case S.deleteFindMin s of
-  (x, s') | pred x -> (x, s')
-  (_, s') -> deleteFindMinWhile pred s'
+deleteFindMinWhile predicate s = case S.deleteFindMin s of
+  (x, s') | not (predicate x) -> (x, s')
+  (_, s') -> deleteFindMinWhile predicate s'
 
 sample :: Dijkstra Int
 sample = SparseDijkstra adj
@@ -64,4 +65,4 @@ sample = SparseDijkstra adj
     adj 4 = []
     adj _ = undefined
 
--- $> dijkstra sample 0 4
+--- $> dijkstra sample 0 4
