@@ -29,6 +29,7 @@ library
       D12.Solution
       D13.Solution
       D14.Solution
+      D15.Alt
       D15.Solution
       D16.Solution
       D17.Solution
@@ -40,6 +41,7 @@ library
       D20.Solution
       D21.Solution
       D22.Solution
+      D23.Graph
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:

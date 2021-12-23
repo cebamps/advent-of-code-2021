@@ -236,6 +236,11 @@ Might as well jot them down here.
 
 # Day 15
 
+*Update:* Day 23 provided me a chance to reimplement Dijkstra using a more
+efficient edge-tracking algorithm. I made it as a separate module and reused it
+on D15 to check its correctness. It is much simpler and much more satisfying
+now!
+
 First one I'm very dissatisfied with! Step two ran very slowly, (around 30
 minutes). I tried profiling, and it *seems* to indicate that the find-minimum
 step of Dijkstra is to blame for the slowness, but... I'll bet the array data

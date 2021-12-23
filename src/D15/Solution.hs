@@ -11,7 +11,6 @@ import Data.Set (member)
 import qualified Data.Set as S
 import Text.Parsec
 import Text.Parsec.String (Parser)
-import Debug.Trace
 
 -- $> :m + System.IO.Unsafe
 
@@ -73,7 +72,6 @@ updateDistances risk search idx = accum updateElem (distances search) (distanceU
 -- indexing the array forces computation
 expandUntilDone :: Risk -> SearchState -> SearchState
 expandUntilDone risk search = case expand risk search of
-  _ | traceShow (S.size $ unvisited search) False -> undefined
   Nothing -> search
   Just search' -> expandUntilDone risk search'
 
