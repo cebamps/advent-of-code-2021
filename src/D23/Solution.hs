@@ -142,7 +142,7 @@ printState r st =
       "#" ++ ph 0 ++ intercalate "." [ph x | x <- [1 .. 5]] ++ ph 6 ++ "#",
       "###" ++ intercalate "#" [pr (r - 1) x | x <- [1 .. 4]] ++ "###"
     ]
-      ++ ["  #" ++ intercalate "#" [pr d x | x <- [1 .. 4]] ++ "#" | d <- [0 .. r - 2]]
+      ++ ["  #" ++ intercalate "#" [pr d x | x <- [1 .. 4]] ++ "#" | d <- [r - 2, r - 3 .. 0]]
       ++ ["  " ++ replicate 9 '#']
   where
     ph = printSlot . Hallway
