@@ -1,6 +1,10 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module D23.Graph where
+module D23.Graph
+  ( Dijkstra (SparseDijkstra),
+    dijkstra,
+  )
+where
 
 import Data.Bifunctor (first)
 import qualified Data.Set as S
@@ -55,14 +59,17 @@ deleteFindMinWhile predicate s = case S.deleteFindMin s of
   (x, s') | not (predicate x) -> (x, s')
   (_, s') -> deleteFindMinWhile predicate s'
 
-sample :: Dijkstra Int
-sample = SparseDijkstra adj
-  where
-    adj 0 = [(1, 2), (4, 1)]
-    adj 1 = [(6, 3), (1, 4)]
-    adj 2 = [(1, 1)]
-    adj 3 = [(1, 0)]
-    adj 4 = []
-    adj _ = undefined
-
---- $> dijkstra sample 0 4
+{- ORMOLU_DISABLE -}
+{- $>
+  let sample :: Dijkstra Int
+      sample = SparseDijkstra adj
+        where
+          adj 0 = [(1, 2), (4, 1)]
+          adj 1 = [(6, 3), (1, 4)]
+          adj 2 = [(1, 1)]
+          adj 3 = [(1, 0)]
+          adj 4 = []
+          adj _ = undefined
+   in dijkstra sample 0 4
+<$ -}
+{- ORMOLU_ENABLE -}

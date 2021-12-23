@@ -1,6 +1,5 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module D23.Solution (solve) where
 
@@ -135,8 +134,10 @@ transitions r st =
       (cost, st') <- amphipodTransitions r (M.delete slot st) (slot, amph)
   ]
 
-printState :: RoomDepth -> State -> String
-printState r st =
+--- debug
+
+_printState :: RoomDepth -> State -> String
+_printState r st =
   unlines $
     [ replicate 13 '#',
       "#" ++ ph 0 ++ intercalate "." [ph x | x <- [1 .. 5]] ++ ph 6 ++ "#",
@@ -149,8 +150,8 @@ printState r st =
     pr d = printSlot . flip Room d
     printSlot = maybe "." show . (M.!?) st
 
-printStateIO :: RoomDepth -> State -> IO ()
-printStateIO r = putStr . printState r
+_printStateIO :: RoomDepth -> State -> IO ()
+_printStateIO r = putStr . _printState r
 
 --- part 1
 
@@ -180,6 +181,8 @@ stateForPart2 st = M.mapKeys newKey st `M.union` extra
           (Room 3 2, B),
           (Room 4 2, A)
         ]
+
+-- $> _printStateIO 4 $ stateForPart2 testInput
 
 solve2 :: State -> Int
 solve2 st = dijkstra (SparseDijkstra (transitions 4)) (stateForPart2 st) (finalState 4)
