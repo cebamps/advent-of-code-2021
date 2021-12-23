@@ -161,8 +161,28 @@ solve1 st = dijkstra (SparseDijkstra (transitions 2)) st (finalState 2)
 -- take a small refactoring in how I deal with rooms, but should be quick
 -- enough.
 
-solve2 :: a -> ()
-solve2 = const ()
+-- go from depth 2 (part 1) to depth 4 (part 2)
+stateForPart2 :: State -> State
+stateForPart2 st = M.mapKeys newKey st `M.union` extra
+  where
+    newKey :: Slot -> Slot
+    newKey (Room x 1) = Room x 3
+    newKey s = s
+    extra :: State
+    extra =
+      M.fromList
+        [ (Room 1 1, D),
+          (Room 2 1, B),
+          (Room 3 1, A),
+          (Room 4 1, C),
+          (Room 1 2, D),
+          (Room 2 2, C),
+          (Room 3 2, B),
+          (Room 4 2, A)
+        ]
+
+solve2 :: State -> Int
+solve2 st = dijkstra (SparseDijkstra (transitions 4)) (stateForPart2 st) (finalState 4)
 
 --- parsing
 
