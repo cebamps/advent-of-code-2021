@@ -38,9 +38,6 @@ dijkstra' end adj st = case popMinimum st of
     let ns = S.fromList $ first (+ score) <$> adj x
     dijkstra' end adj st' {edge = edge st' `S.union` ns}
 
--- mark it visited
--- expand edge to include neighbors, including their total score
-
 -- takes the min node out of the edge, adds it to the visited set and returns
 -- it
 popMinimum :: Ord a => SDState a -> ((Score, a), SDState a)
@@ -53,7 +50,8 @@ popMinimum st =
           }
       )
 
--- will error when called on the empty set
+-- Will error when called on the empty set. This happens when the end is not
+-- reachable.
 deleteFindMinWhile :: (a -> Bool) -> S.Set a -> (a, S.Set a)
 deleteFindMinWhile predicate s = case S.deleteFindMin s of
   (x, s') | not (predicate x) -> (x, s')
