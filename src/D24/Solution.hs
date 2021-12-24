@@ -3,13 +3,14 @@
 
 module D24.Solution (solve) where
 
-import Control.Monad.State.Strict (State, evalState, execState, gets, modify, state)
-import Data.List (find, foldl')
-import Debug.Trace
+import Control.Monad.Coroutine (Coroutine)
+import Control.Monad.Coroutine.SuspensionFunctors (Await)
+import Control.Monad.State.Strict (State, gets, modify, state, execState, evalState)
+import Control.Monad.Trans (lift)
+import D24.Coroutine (Vararg)
+import Data.List (foldl')
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
-import Control.Monad.Coroutine (Coroutine, runCoroutine, Naught)
-import Control.Monad.Trans (lift)
 
 -- $> :m + System.IO.Unsafe
 
@@ -43,7 +44,7 @@ data ProgramState = ProgramState
 
 type Input = [Instruction]
 
-type SuspendedProgram a = Coroutine Naught (State ProgramState) a
+type SuspendedProgram a = Coroutine (Await Int) (State ProgramState) a
 
 setReg' :: Register -> Int -> (ProgramState -> ProgramState)
 setReg' W x st = st {pW = x}
@@ -98,17 +99,24 @@ runInstruction (Eql r x) = lift $ operate2 eqFun r x
 initState :: [Int] -> ProgramState
 initState inputs = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0, pInput = inputs}
 
-compile :: [Instruction] -> ([Int] -> ProgramState)
-compile ins inputs =
+compile :: [Instruction] -> Vararg Int Int
+compile ins =
   let program = mapM_ runInstruction ins
-   in (execState . runCoroutine) program (initState inputs)
+   in asVararg evalState
 
-compileMONAD :: [Instruction] -> ([Int] -> Bool)
-compileMONAD ins inputs =
+{-
+   (execState . runToCompletion []) program (initState inputs)
+-}
+
+compileMONAD :: [Instruction] -> ([Int] -> Maybe Bool)
+compileMONAD = undefined
+
+{-
   let program = mapM_ runInstruction ins >> (0 ==) <$> lift (getReg Z)
-   in (evalState . runCoroutine) program (initState inputs)
+   in (evalState . runFinishedCoroutine) program (initState inputs)
+-}
 
---- $> [ (w,x,y,z) | i <- [0..19], let ProgramState w x y z _ = compile testInput $ [i]]
+-- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z _) = compile testInput $ [i]]
 
 --- part 1
 
@@ -128,9 +136,8 @@ digitsToInt = foldl' shift 0
 --- $> digitsToInt <$> take 3 modelNumbers
 
 solve1 :: Input -> Maybe Int
-solve1 input = do
-  let test x = compileMONAD input x
-  digitsToInt <$> find test modelNumbers
+solve1 = do
+  undefined -- digitsToInt <$> find test modelNumbers
 
 --- part 2
 
