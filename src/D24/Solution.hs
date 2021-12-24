@@ -8,6 +8,8 @@ import Data.List (find, foldl')
 import Debug.Trace
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
+import Control.Monad.Coroutine (Coroutine, runCoroutine, Naught)
+import Control.Monad.Trans (lift)
 
 -- $> :m + System.IO.Unsafe
 
@@ -40,6 +42,8 @@ data ProgramState = ProgramState
   deriving (Eq, Show)
 
 type Input = [Instruction]
+
+type SuspendedProgram a = Coroutine Naught (State ProgramState) a
 
 setReg' :: Register -> Int -> (ProgramState -> ProgramState)
 setReg' W x st = st {pW = x}
@@ -78,15 +82,15 @@ operate2 f r x = do
   x' <- deref x
   operate (`f` x') r
 
-runInstruction :: Instruction -> State ProgramState ()
-runInstruction (Inp r) = popInput >>= setReg r
-runInstruction (Add r x) = operate2 (+) r x
-runInstruction (Mul r x) = operate2 (*) r x
-runInstruction (Div r x) = operate2 quot r x
+runInstruction :: Instruction -> SuspendedProgram ()
+runInstruction (Inp r) = lift $ popInput >>= setReg r
+runInstruction (Add r x) = lift $ operate2 (+) r x
+runInstruction (Mul r x) = lift $ operate2 (*) r x
+runInstruction (Div r x) = lift $ operate2 quot r x
 -- not clear in the instructions if it is the remainder of the previous
 -- operation, or the mod operation
-runInstruction (Mod r x) = operate2 rem r x
-runInstruction (Eql r x) = operate2 eqFun r x
+runInstruction (Mod r x) = lift $ operate2 rem r x
+runInstruction (Eql r x) = lift $ operate2 eqFun r x
   where
     eqFun :: Int -> Int -> Int
     eqFun y y' = if y == y' then 1 else 0
@@ -97,12 +101,12 @@ initState inputs = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0, pInput = inputs
 compile :: [Instruction] -> ([Int] -> ProgramState)
 compile ins inputs =
   let program = mapM_ runInstruction ins
-   in execState program (initState inputs)
+   in (execState . runCoroutine) program (initState inputs)
 
 compileMONAD :: [Instruction] -> ([Int] -> Bool)
 compileMONAD ins inputs =
-  let program = mapM_ runInstruction ins >> (0 ==) <$> getReg Z
-   in evalState program (initState inputs)
+  let program = mapM_ runInstruction ins >> (0 ==) <$> lift (getReg Z)
+   in (evalState . runCoroutine) program (initState inputs)
 
 --- $> [ (w,x,y,z) | i <- [0..19], let ProgramState w x y z _ = compile testInput $ [i]]
 

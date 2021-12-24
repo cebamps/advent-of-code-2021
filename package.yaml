@@ -10,6 +10,7 @@ library:
     - array
     - comonad
     - containers
+    - monad-coroutine
     - mtl
     - parsec
     - vector
