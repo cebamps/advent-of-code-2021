@@ -10,6 +10,7 @@ library:
     - array
     - comonad
     - containers
+    - mtl
     - parsec
     - vector
 
@@ -40,5 +41,5 @@ executables:
   d21: { <<: *base-exe, main: d21.hs }
   d22: { <<: *base-exe, main: d22.hs }
   d23: { <<: *base-exe, main: d23.hs }
-# d24: { <<: *base-exe, main: d24.hs }
+  d24: { <<: *base-exe, main: d24.hs }
 # d25: { <<: *base-exe, main: d25.hs }
