@@ -104,7 +104,7 @@ compileMONAD ins inputs =
   let program = mapM_ runInstruction ins >> (0 ==) <$> getReg Z
    in evalState program (initState inputs)
 
---- $> [ (w,x,y,z) | i <- [0..19], let (_, ProgramState w x y z _) = compile testInput $ [i]]
+--- $> [ (w,x,y,z) | i <- [0..19], let ProgramState w x y z _ = compile testInput $ [i]]
 
 --- part 1
 
@@ -113,7 +113,7 @@ modelNumbers = go 14
   where
     go :: Int -> [[Int]]
     go 0 = [[]]
-    go n = [d:xs | xs <- go (n-1), d <- digits]
+    go n = [d : xs | xs <- go (n -1), d <- digits]
     digits = [9, 8 .. 1]
 
 digitsToInt :: [Int] -> Int
