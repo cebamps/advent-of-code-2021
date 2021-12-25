@@ -12,7 +12,7 @@ import Data.List (find, foldl')
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
 
--- $> :m + System.IO.Unsafe
+-- $> :m + System.IO.Unsafe D24.Coroutine
 
 -- $> testInput = unsafePerformIO $ readFile "inputs/d24-test.txt" >>= parseOrFail inputP
 
@@ -91,19 +91,17 @@ runInstruction (Eql r x) = lift $ operate2 eqFun r x
 initState :: ProgramState
 initState = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0}
 
-compile :: [Instruction] -> CoroutineVariadic ProgramState Int ProgramState
-compile ins =
+_compile :: [Instruction] -> CoroutineVariadic ProgramState Int ProgramState
+_compile ins =
   let program = mapM_ runInstruction ins >> lift get
    in coroutineVariadic initState program
+
+-- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z) = finish [i] $ _compile testInput]
 
 compileMONAD :: [Instruction] -> CoroutineVariadic ProgramState Int Bool
 compileMONAD ins =
   let program = mapM_ runInstruction ins >> lift ((0 ==) <$> getReg Z)
    in coroutineVariadic initState program
-
--- $> :m + D24.Coroutine
-
--- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z) = finish [i] $ compile testInput]
 
 --- part 1
 
