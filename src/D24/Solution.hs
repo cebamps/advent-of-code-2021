@@ -209,10 +209,6 @@ investigate ins = do
   putStrLn "State after feeding 13 times 9:"
   print stateInProgress
 
-  putStrLn "\nManual solve test:"
-  let sol = [1, 2, 9, 9, 6, 9, 9, 7, 8, 2, 9, 3, 9, 9]
-   in print $ finish sol vf
-
   putStrLn "\n9 branches:"
   forM_ [1 .. 9] $ \i -> do
     putStr $ show i ++ " -> "
@@ -226,6 +222,10 @@ investigate ins = do
   forM_ (take 9 . fmap (take 14) . tails $ cycle [1 .. 9]) $ \inp -> do
     putStr $ show inp ++ " -> "
     print $ checkHandCompiled ins inp
+
+  putStrLn "\nManual solve test:"
+  let sol = [1, 2, 9, 9, 6, 9, 9, 7, 8, 2, 9, 3, 9, 9]
+   in putStrLn $ show sol ++ " -> " ++ show (finish sol vf)
 
 --- Discarding almost all of the above, here's my manual solution.
 
