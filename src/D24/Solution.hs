@@ -113,7 +113,7 @@ compile ins =
   let program = mapM_ runInstruction ins >> lift get
    in coroutineVariadic initState program
 
--- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z) = finish [i] $ _compile testInput]
+-- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z) = finish [i] $ compile testInput]
 
 compileMONAD :: [Instruction] -> CoroutineVariadic ProgramState Int Bool
 compileMONAD ins =
