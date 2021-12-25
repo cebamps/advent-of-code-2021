@@ -60,8 +60,6 @@ data ProgramState = ProgramState
 
 type Input = [Instruction]
 
---type SuspendedProgram a = Coroutine (Await Int) (State ProgramState) a
-
 setReg' :: Register -> Int -> (ProgramState -> ProgramState)
 setReg' W x st = st {pW = x}
 setReg' X x st = st {pX = x}
