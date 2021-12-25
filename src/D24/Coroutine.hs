@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module D24.Coroutine
