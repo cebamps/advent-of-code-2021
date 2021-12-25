@@ -9,7 +9,7 @@ import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
 import D24.Coroutine (CoroutineVariadic (CoroutineVariadic), PureVariadic (PureVariadic, PureVariadicDone), SuspendedProgram, Variadic, coroutineVariadic, feed, finish, receive)
 import Data.Bifunctor (first)
-import Data.List (find, foldl', tails, sort)
+import Data.List (find, foldl', sort, tails)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
@@ -30,8 +30,8 @@ solve inputStr = do
   print $ solve1 input
   print $ solve2 input
 
-  --putStrLn "\nBrute force search will run now, but it's a lost cause..."
-  --print $ _solve1Bruteforce input
+--putStrLn "\nBrute force search will run now, but it's a lost cause..."
+--print $ _solve1Bruteforce input
 
 data Register = W | X | Y | Z deriving (Eq, Show)
 
@@ -225,7 +225,15 @@ investigate ins = do
 
 -- see Solution.md
 constraintPairs :: [(Int, Int)]
-constraintPairs = fmap (\(i, j) -> (i - 1, j - 1)) [(11, 12), (7, 8), (6, 9), (4, 5), (3, 10), (2, 13), (1, 14)]
+constraintPairs =
+  [ (10, 11),
+    (6, 7),
+    (5, 8),
+    (3, 4),
+    (2, 9),
+    (1, 12),
+    (0, 13)
+  ]
 
 -- unsafe
 inputs1 :: [Instruction] -> [(Int, Int)]
