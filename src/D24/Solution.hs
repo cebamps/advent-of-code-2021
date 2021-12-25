@@ -3,10 +3,11 @@
 
 module D24.Solution (solve) where
 
+import Control.Monad (forM_)
 import Control.Monad.Coroutine.SuspensionFunctors (await)
 import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
-import D24.Coroutine (CoroutineVariadic, SuspendedProgram, Variadic, coroutineVariadic, feed, receive)
+import D24.Coroutine (CoroutineVariadic (CoroutineVariadic), SuspendedProgram, Variadic, coroutineVariadic, feed, receive)
 import Data.Bifunctor (first)
 import Data.List (find, foldl')
 import Text.Parsec hiding (State)
@@ -19,6 +20,9 @@ import Text.Parsec.String (Parser)
 solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
+  investigate input
+
+  putStrLn "\nBrute force search will run now, but it's a lost cause..."
   print $ solve1 input
   print $ solve2 input
 
@@ -102,6 +106,19 @@ compileMONAD :: [Instruction] -> CoroutineVariadic ProgramState Int Bool
 compileMONAD ins =
   let program = mapM_ runInstruction ins >> lift ((0 ==) <$> getReg Z)
    in coroutineVariadic initState program
+
+investigate :: [Instruction] -> IO ()
+investigate ins = do
+  let vf = coroutineVariadic initState $ mapM_ runInstruction ins >> lift get
+      vf' = foldr1 (.) (replicate 13 (feed 9)) vf
+      CoroutineVariadic (_, stateInProgress) = vf'
+  putStrLn "State after feeding 13 times 9:"
+  print stateInProgress
+
+  putStrLn "\n9 branches:"
+  forM_ [1 .. 9] $ \i -> do
+    putStr $ show i ++ " -> "
+    print $ receive . feed i $ vf'
 
 --- part 1
 
