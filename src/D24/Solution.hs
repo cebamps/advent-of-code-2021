@@ -9,7 +9,6 @@ import Control.Monad.Trans (lift)
 import D24.Coroutine (SuspendedProgram, Vararg (Vararg, VarargDone), execVararg, feed, receive)
 import Data.Bifunctor (first)
 import Data.List (find, foldl')
-import Debug.Trace
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
 
@@ -77,7 +76,7 @@ operate2 f r x = do
   operate (`f` x') r
 
 runInstruction :: Instruction -> SuspendedProgram ProgramState Int ()
-runInstruction (Inp r) = ({-trace "input" <$>-} await) >>= lift . setReg r
+runInstruction (Inp r) = await >>= lift . setReg r
 runInstruction (Add r x) = lift $ operate2 (+) r x
 runInstruction (Mul r x) = lift $ operate2 (*) r x
 runInstruction (Div r x) = lift $ operate2 quot r x
@@ -116,16 +115,6 @@ digitsToInt = foldl' shift 0
 allMONADCalls :: [Instruction] -> [(Int, Bool)]
 allMONADCalls ins = first digitsToInt <$> allBranches 14 (compileMONAD ins)
 
-dumpArgs :: Int -> Vararg a [a]
-dumpArgs = f []
-  where
-    f xs 0 = VarargDone (reverse xs)
-    f xs n = Vararg $ \x -> f (x : xs) (n - 1)
-
--- $> receive . feed 2 . feed 1 $ dumpArgs 2
-
--- $> allBranches 2 (dumpArgs 2)
-
 -- first inputs are listed first in the output
 allBranches :: Int -> Vararg Int a -> [([Int], a)]
 allBranches = go
@@ -141,20 +130,10 @@ allBranches = go
             ]
         )
         digits
-    --    go n vf =
-    --      [ (i : input, out)
-    --        | i <- digits,
-    --          let vf' = feed i vf,
-    --          (input, out) <- go (n - 1) vf'
-    --      ]
     digits = [9, 8 .. 1]
 
---digits n = if n > 2 then [9] else [9, 8]
-
---- $> digitsToInt <$> take 3 modelNumbers
-
 solve1 :: Input -> Maybe Int
-solve1 ins = fst <$> find (snd {-. traceShowId-}) (allMONADCalls ins)
+solve1 ins = fst <$> find snd (allMONADCalls ins)
 
 --- part 2
 
