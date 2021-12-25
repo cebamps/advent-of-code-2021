@@ -1,5 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module D24.Solution (solve) where
 
@@ -7,9 +7,10 @@ import Control.Monad (forM_)
 import Control.Monad.Coroutine.SuspensionFunctors (await)
 import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
-import D24.Coroutine (CoroutineVariadic (CoroutineVariadic), SuspendedProgram, Variadic, coroutineVariadic, feed, receive)
+import D24.Coroutine (CoroutineVariadic (CoroutineVariadic), PureVariadic (PureVariadic, PureVariadicDone), SuspendedProgram, Variadic, coroutineVariadic, feed, finish, receive)
 import Data.Bifunctor (first)
-import Data.List (find, foldl')
+import Data.List (find, foldl', tails, sort)
+import Data.Maybe (fromJust)
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
 
@@ -17,14 +18,20 @@ import Text.Parsec.String (Parser)
 
 -- $> testInput = unsafePerformIO $ readFile "inputs/d24-test.txt" >>= parseOrFail inputP
 
+-- $> trueInput = unsafePerformIO $ readFile "inputs/d24.txt" >>= parseOrFail inputP
+
 solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
   investigate input
 
-  putStrLn "\nBrute force search will run now, but it's a lost cause..."
+  putStrLn "\nManual solution follows, check notes for details!"
+
   print $ solve1 input
   print $ solve2 input
+
+  --putStrLn "\nBrute force search will run now, but it's a lost cause..."
+  --print $ _solve1Bruteforce input
 
 data Register = W | X | Y | Z deriving (Eq, Show)
 
@@ -95,8 +102,8 @@ runInstruction (Eql r x) = lift $ operate2 eqFun r x
 initState :: ProgramState
 initState = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0}
 
-_compile :: [Instruction] -> CoroutineVariadic ProgramState Int ProgramState
-_compile ins =
+compile :: [Instruction] -> CoroutineVariadic ProgramState Int ProgramState
+compile ins =
   let program = mapM_ runInstruction ins >> lift get
    in coroutineVariadic initState program
 
@@ -106,19 +113,6 @@ compileMONAD :: [Instruction] -> CoroutineVariadic ProgramState Int Bool
 compileMONAD ins =
   let program = mapM_ runInstruction ins >> lift ((0 ==) <$> getReg Z)
    in coroutineVariadic initState program
-
-investigate :: [Instruction] -> IO ()
-investigate ins = do
-  let vf = coroutineVariadic initState $ mapM_ runInstruction ins >> lift get
-      vf' = foldr1 (.) (replicate 13 (feed 9)) vf
-      CoroutineVariadic (_, stateInProgress) = vf'
-  putStrLn "State after feeding 13 times 9:"
-  print stateInProgress
-
-  putStrLn "\n9 branches:"
-  forM_ [1 .. 9] $ \i -> do
-    putStr $ show i ++ " -> "
-    print $ receive . feed i $ vf'
 
 --- part 1
 
@@ -147,13 +141,128 @@ allBranches = go
         digits
     digits = [9, 8 .. 1]
 
-solve1 :: Input -> Maybe Int
-solve1 ins = fst <$> find snd (allMONADCalls ins)
+handCompilationParameters :: [Instruction] -> Maybe (Int, Int, Int)
+handCompilationParameters
+  [ Inp W,
+    Mul X (Right 0),
+    Add X (Left Z),
+    Mod X (Right 26),
+    Div Z (Right zdiv5),
+    Add X (Right xadd6),
+    Eql X (Left W),
+    Eql X (Right 0),
+    Mul Y (Right 0),
+    Add Y (Right 25),
+    Mul Y (Left X),
+    Add Y (Right 1),
+    Mul Z (Left Y),
+    Mul Y (Right 0),
+    Add Y (Left W),
+    Add Y (Right yadd16),
+    Mul Y (Left X),
+    Add Z (Left Y)
+    ] = Just (zdiv5, xadd6, yadd16)
+handCompilationParameters _ = Nothing
+
+handCompiledStep :: [Instruction] -> (Int -> Int -> Int)
+handCompiledStep (handCompilationParameters -> Just (a, b, c)) = \inp z ->
+  if inp == z `rem` 26 + b
+    then z `quot` a
+    else (z `quot` a) * 26 + inp + c
+handCompiledStep _ = error "instructions do not follow the template"
+
+blocks :: [Instruction] -> [[Instruction]]
+blocks = partition 18
+
+handCompiled :: [Instruction] -> PureVariadic Int Int
+handCompiled ins =
+  let steps = handCompiledStep <$> blocks ins
+   in mkv 0 steps
+  where
+    mkv :: Int -> [Int -> Int -> Int] -> PureVariadic Int Int
+    mkv z [] = PureVariadicDone z
+    mkv z (step : steps) = PureVariadic $ \inp ->
+      let z' = step inp z
+       in mkv z' steps
+
+partition :: Int -> [a] -> [[a]]
+partition _ [] = []
+partition n xs = let (h, t) = splitAt n xs in h : partition n t
+
+checkHandCompiled :: [Instruction] -> [Int] -> Bool
+checkHandCompiled ins inp =
+  let vf = compile ins
+      vf' = handCompiled ins
+   in finish inp vf' == getReg' Z (finish inp vf)
+
+investigate :: [Instruction] -> IO ()
+investigate ins = do
+  let vf = coroutineVariadic initState $ mapM_ runInstruction ins >> lift get
+      vf' = foldr1 (.) (replicate 13 (feed 9)) vf
+      CoroutineVariadic (_, stateInProgress) = vf'
+  putStrLn "State after feeding 13 times 9:"
+  print stateInProgress
+
+  putStrLn "\nManual solve test:"
+  let sol = [1, 2, 9, 9, 6, 9, 9, 7, 8, 2, 9, 3, 9, 9]
+   in print $ finish sol vf
+
+  putStrLn "\n9 branches:"
+  forM_ [1 .. 9] $ \i -> do
+    putStr $ show i ++ " -> "
+    print $ receive . feed i $ vf'
+
+  putStrLn "\nHand compilation: list of (a,b,c) parameters for each step:"
+  forM_ (zip [1 :: Int ..] $ handCompilationParameters <$> blocks ins) $ \(i, Just params) -> do
+    putStrLn $ show i ++ " -> " ++ show params
+
+  putStrLn "\nComparison with hand-compiled version for a few inputs:"
+  forM_ (take 9 . fmap (take 14) . tails $ cycle [1 .. 9]) $ \inp -> do
+    putStr $ show inp ++ " -> "
+    print $ checkHandCompiled ins inp
+
+--- Discarding almost all of the above, here's my manual solution.
+
+-- see Solution.md
+constraintPairs :: [(Int, Int)]
+constraintPairs = fmap (\(i, j) -> (i - 1, j - 1)) [(11, 12), (7, 8), (6, 9), (4, 5), (3, 10), (2, 13), (1, 14)]
+
+-- unsafe
+inputs1 :: [Instruction] -> [(Int, Int)]
+inputs1 inp =
+  let abcs = fromJust . handCompilationParameters <$> blocks inp
+   in concat
+        [ [(i, wi), (j, wj)]
+          | (i, j) <- constraintPairs,
+            let (_, _, ci) = abcs !! i,
+            let (_, bj, _) = abcs !! j,
+            let wi = min 9 (9 - ci - bj),
+            let wj = wi + ci + bj
+        ]
+
+inputs2 :: [Instruction] -> [(Int, Int)]
+inputs2 inp =
+  let abcs = fromJust . handCompilationParameters <$> blocks inp
+   in concat
+        [ [(i, wi), (j, wj)]
+          | (i, j) <- constraintPairs,
+            let (_, _, ci) = abcs !! i,
+            let (_, bj, _) = abcs !! j,
+            let wi = max 1 (1 - ci - bj),
+            let wj = wi + ci + bj
+        ]
+
+solve1 :: Input -> Int
+solve1 = digitsToInt . fmap snd . sort . inputs1
+
+-- lost cause
+_solve1Bruteforce :: Input -> Maybe Int
+_solve1Bruteforce ins = fst <$> find snd (allMONADCalls ins)
 
 --- part 2
 
-solve2 :: a -> ()
-solve2 = const ()
+solve2 :: Input -> Int
+solve2 = digitsToInt . fmap snd . sort . inputs2
 
 --- parsing
 

@@ -381,3 +381,40 @@ Some nice references were useful:
 - https://wiki.haskell.org/Zipper
 - https://stackoverflow.com/questions/25519767/how-to-make-a-binary-tree-zipper-an-instance-of-comonad
 - https://stackoverflow.com/questions/25554062/zipper-comonads-generically
+
+
+# Day 24
+
+That surely is a step up in difficulty, unless I am missing something.
+
+I naively thought I could get away with a brute force search from
+99999999999999 down, hoping that the answer to part 1 would be high enough to
+be reached in time.
+
+I used the state monad for the first time, and it did not reach the solution.
+
+I then figured I could get a significant optimization out of sharing: when I
+run the program for successive inputs, the input prefix remains mostly the
+same. For example, the first 9 tested inputs all share the same thirteen 9's in
+the input, and they only branch out at the last digit. In the state monad I
+would rerun the computation from scratch, whereas I would like to share the
+common part.
+
+So I refactored my code to add a coroutine monad to my monad stack, changing
+the `inp` instruction to run `await` rather than pop an input off the stack in
+the program state.
+
+I built a bit of machinery around it to abstract away the monad stack into a
+shareable variadic pure function, which hides the computation-in-progress and
+the state-in-progress. It's a little wonky with respect to error conditions,
+but it does the job.
+
+Nevertheless, it all still relied on my assumption that the solution would be
+reachable. But clearly it isn't!
+
+A careful look at my input reveals I could compile it by hand, so inspecting that
+is my next step.
+
+Spoilers: I ended up resolving it by hand. That was such a crazy challenge.
+
+See [src/d24/Solution.md](src/d24/Solution.md) for the details.
