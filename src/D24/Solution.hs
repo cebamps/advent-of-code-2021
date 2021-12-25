@@ -3,12 +3,13 @@
 
 module D24.Solution (solve) where
 
-import Control.Monad.Coroutine (Coroutine)
-import Control.Monad.Coroutine.SuspensionFunctors (Await)
-import Control.Monad.State.Strict (State, gets, modify, state, execState, evalState)
+import Control.Monad.Coroutine.SuspensionFunctors (await)
+import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
-import D24.Coroutine (Vararg)
-import Data.List (foldl')
+import D24.Coroutine (SuspendedProgram, Vararg (Vararg, VarargDone), execVararg, feed, receive)
+import Data.Bifunctor (first)
+import Data.List (find, foldl')
+import Debug.Trace
 import Text.Parsec hiding (State)
 import Text.Parsec.String (Parser)
 
@@ -37,14 +38,13 @@ data ProgramState = ProgramState
   { pW :: Int,
     pX :: Int,
     pY :: Int,
-    pZ :: Int,
-    pInput :: [Int] -- consumed at the head
+    pZ :: Int
   }
   deriving (Eq, Show)
 
 type Input = [Instruction]
 
-type SuspendedProgram a = Coroutine (Await Int) (State ProgramState) a
+--type SuspendedProgram a = Coroutine (Await Int) (State ProgramState) a
 
 setReg' :: Register -> Int -> (ProgramState -> ProgramState)
 setReg' W x st = st {pW = x}
@@ -68,13 +68,6 @@ deref :: Either Register Int -> State ProgramState Int
 deref (Right x) = return x
 deref (Left x) = getReg x
 
--- unsafe on an empty list
-popInput' :: ProgramState -> (Int, ProgramState)
-popInput' st = let (x : inp') = pInput st in (x, st {pInput = inp'})
-
-popInput :: State ProgramState Int
-popInput = state popInput'
-
 operate :: (Int -> Int) -> Register -> State ProgramState ()
 operate f r = getReg r >>= setReg r . f
 
@@ -83,8 +76,8 @@ operate2 f r x = do
   x' <- deref x
   operate (`f` x') r
 
-runInstruction :: Instruction -> SuspendedProgram ()
-runInstruction (Inp r) = lift $ popInput >>= setReg r
+runInstruction :: Instruction -> SuspendedProgram ProgramState Int ()
+runInstruction (Inp r) = ({-trace "input" <$>-} await) >>= lift . setReg r
 runInstruction (Add r x) = lift $ operate2 (+) r x
 runInstruction (Mul r x) = lift $ operate2 (*) r x
 runInstruction (Div r x) = lift $ operate2 quot r x
@@ -96,48 +89,72 @@ runInstruction (Eql r x) = lift $ operate2 eqFun r x
     eqFun :: Int -> Int -> Int
     eqFun y y' = if y == y' then 1 else 0
 
-initState :: [Int] -> ProgramState
-initState inputs = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0, pInput = inputs}
+initState :: ProgramState
+initState = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0}
 
-compile :: [Instruction] -> Vararg Int Int
+compile :: [Instruction] -> Vararg Int ProgramState
 compile ins =
-  let program = mapM_ runInstruction ins
-   in asVararg evalState
+  let program = mapM_ runInstruction ins >> lift get
+   in execVararg initState program
 
-{-
-   (execState . runToCompletion []) program (initState inputs)
--}
+compileMONAD :: [Instruction] -> Vararg Int Bool
+compileMONAD ins =
+  let program = mapM_ runInstruction ins >> lift ((0 ==) <$> getReg Z)
+   in execVararg initState program
 
-compileMONAD :: [Instruction] -> ([Int] -> Maybe Bool)
-compileMONAD = undefined
+-- $> :m + D24.Coroutine
 
-{-
-  let program = mapM_ runInstruction ins >> (0 ==) <$> lift (getReg Z)
-   in (evalState . runFinishedCoroutine) program (initState inputs)
--}
-
--- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z _) = compile testInput $ [i]]
+-- $> [ (w,x,y,z) | i <- [0..19], let (ProgramState w x y z) = finish [i] $ compile testInput]
 
 --- part 1
-
-modelNumbers :: [[Int]]
-modelNumbers = go 14
-  where
-    go :: Int -> [[Int]]
-    go 0 = [[]]
-    go n = [d : xs | xs <- go (n -1), d <- digits]
-    digits = [9, 8 .. 1]
 
 digitsToInt :: [Int] -> Int
 digitsToInt = foldl' shift 0
   where
     shift s x = s * 10 + x
 
+allMONADCalls :: [Instruction] -> [(Int, Bool)]
+allMONADCalls ins = first digitsToInt <$> allBranches 14 (compileMONAD ins)
+
+dumpArgs :: Int -> Vararg a [a]
+dumpArgs = f []
+  where
+    f xs 0 = VarargDone (reverse xs)
+    f xs n = Vararg $ \x -> f (x : xs) (n - 1)
+
+-- $> receive . feed 2 . feed 1 $ dumpArgs 2
+
+-- $> allBranches 2 (dumpArgs 2)
+
+-- first inputs are listed first in the output
+allBranches :: Int -> Vararg Int a -> [([Int], a)]
+allBranches = go
+  where
+    go :: Int -> Vararg Int b -> [([Int], b)]
+    go 0 vf = [([], receive vf)]
+    go n vf =
+      concatMap
+        ( \i ->
+            [ (i : input, out)
+              | let vf' = feed i vf,
+                (input, out) <- go (n - 1) vf'
+            ]
+        )
+        digits
+    --    go n vf =
+    --      [ (i : input, out)
+    --        | i <- digits,
+    --          let vf' = feed i vf,
+    --          (input, out) <- go (n - 1) vf'
+    --      ]
+    digits = [9, 8 .. 1]
+
+--digits n = if n > 2 then [9] else [9, 8]
+
 --- $> digitsToInt <$> take 3 modelNumbers
 
 solve1 :: Input -> Maybe Int
-solve1 = do
-  undefined -- digitsToInt <$> find test modelNumbers
+solve1 ins = fst <$> find (snd {-. traceShowId-}) (allMONADCalls ins)
 
 --- part 2
 
