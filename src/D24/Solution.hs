@@ -6,7 +6,7 @@ module D24.Solution (solve) where
 import Control.Monad.Coroutine.SuspensionFunctors (await)
 import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
-import D24.Coroutine (SuspendedProgram, Vararg (Vararg, VarargDone), execVararg, feed, receive)
+import D24.Coroutine (CoroutineVariadic, SuspendedProgram, Variadic, coroutineVariadic, feed, receive)
 import Data.Bifunctor (first)
 import Data.List (find, foldl')
 import Text.Parsec hiding (State)
@@ -91,15 +91,15 @@ runInstruction (Eql r x) = lift $ operate2 eqFun r x
 initState :: ProgramState
 initState = ProgramState {pW = 0, pX = 0, pY = 0, pZ = 0}
 
-compile :: [Instruction] -> Vararg Int ProgramState
+compile :: [Instruction] -> CoroutineVariadic ProgramState Int ProgramState
 compile ins =
   let program = mapM_ runInstruction ins >> lift get
-   in execVararg initState program
+   in coroutineVariadic initState program
 
-compileMONAD :: [Instruction] -> Vararg Int Bool
+compileMONAD :: [Instruction] -> CoroutineVariadic ProgramState Int Bool
 compileMONAD ins =
   let program = mapM_ runInstruction ins >> lift ((0 ==) <$> getReg Z)
-   in execVararg initState program
+   in coroutineVariadic initState program
 
 -- $> :m + D24.Coroutine
 
@@ -116,10 +116,10 @@ allMONADCalls :: [Instruction] -> [(Int, Bool)]
 allMONADCalls ins = first digitsToInt <$> allBranches 14 (compileMONAD ins)
 
 -- first inputs are listed first in the output
-allBranches :: Int -> Vararg Int a -> [([Int], a)]
+allBranches :: Variadic f => Int -> f Int a -> [([Int], a)]
 allBranches = go
   where
-    go :: Int -> Vararg Int b -> [([Int], b)]
+    go :: Variadic f => Int -> f Int b -> [([Int], b)]
     go 0 vf = [([], receive vf)]
     go n vf =
       concatMap

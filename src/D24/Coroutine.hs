@@ -8,41 +8,49 @@ import Control.Monad.Coroutine (Coroutine, resume)
 import Control.Monad.Coroutine.SuspensionFunctors (Await (Await))
 import Control.Monad.State.Strict (State, runState)
 
--- no: we have no state here
--- newtype Vararg a b s = Vararg (Coroutine (Await a) (State s) b)
-
 type SuspendedProgram s a b = Coroutine (Await a) (State s) b
 
--- encapsulates a stateful computation in progress
-data Vararg a b
-  = Vararg {runVararg :: a -> Vararg a b}
-  | VarargDone b
+class Variadic f where
+  feed :: a -> f a b -> f a b
+  receive :: f a b -> b
 
-feed :: a -> Vararg a b -> Vararg a b
-feed x (Vararg f) = f x
-feed _ (VarargDone _) = error "vararg takes no more arguments"
+data PureVariadic a b
+  = PureVariadic (a -> PureVariadic a b)
+  | PureVariadicDone b
 
-receive :: Vararg a b -> b
-receive (VarargDone x) = x
-receive (Vararg _) = error "vararg is not finished"
+instance Variadic PureVariadic where
+  receive (PureVariadicDone x) = x
+  receive _ = error "computation is not finished"
+  feed x (PureVariadic f) = f x
+  feed _ (PureVariadicDone _) = error "computation takes no more arguments"
 
-finish :: [a] -> Vararg a b -> b
+finish :: Variadic f => [a] -> f a b -> b
 finish [] vf = receive vf
 finish (x : xs) vf = let vf' = feed x vf in finish xs vf'
 
-execVararg :: s -> SuspendedProgram s a b -> Vararg a b
-execVararg s p = do
-  -- First, resume (peels Coroutine, get State (Either Suspended x)).
-  -- Then, execute State with pending state value (peels State).
-  -- Finally, depending on Coroutine progress, stop or continue, carrying the
-  -- state along.
-  case runState (resume p) s of
-    (Left (Await f), s') -> Vararg $ \x -> execVararg s' (f x)
-    (Right x, _) -> VarargDone x
+-- encapsulates a stateful computation in progress
+newtype CoroutineVariadic s a b
+  = CoroutineVariadic
+      ( -- contents of the state monad after resumption
+        Either (Await a (SuspendedProgram s a b)) b,
+        s
+      )
 
+-- First, resume (peels Coroutine, get State (Either Suspended x)).
+-- Then, run State with pending state value (peels State).
+-- Finally, depending on Coroutine progress, stop or continue, carrying the
+-- state along.
+coroutineVariadic :: s -> SuspendedProgram s a b -> CoroutineVariadic s a b
+coroutineVariadic st sp = CoroutineVariadic $ runState (resume sp) st
+
+instance Variadic (CoroutineVariadic s) where
+  receive (CoroutineVariadic (Right x, _)) = x
+  receive _ = error "computation is not finished"
+  feed x (CoroutineVariadic (Left (Await aw), st)) = coroutineVariadic st (aw x)
+  feed _ (CoroutineVariadic (Right _, _)) = error "computation takes no more arguments"
 
 {- ORMOLU_DISABLE -}
--- $> :m + Control.Monad.Trans Control.Monad.State Control.Monad.Coroutine.SuspensionFunctors
+-- $> :m + Control.Monad.Trans Control.Monad.State.Strict Control.Monad.Coroutine.SuspensionFunctors Debug.Trace
 {- $>
  testRoutine :: Coroutine (Await Char) (State String) String
  testRoutine = do
@@ -53,7 +61,7 @@ execVararg s p = do
    return $ greeting ++ ", " ++ [x, y, z]
 <$ -}
 {- $>
- let partial = feed 'b' . feed 'a' $ execVararg "hello" testRoutine
+ let partial = feed 'b' . feed 'a' $ coroutineVariadic "hello" testRoutine
   in (receive . feed 'c' $ partial, receive . feed 'd' $ partial)
 <$ -}
 {- ORMOLU_ENABLE -}

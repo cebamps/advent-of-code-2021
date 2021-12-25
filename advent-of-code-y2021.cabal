@@ -43,6 +43,7 @@ library
       D22.Solution
       D23.Graph
       D23.Solution
+      D24.Coroutine
       D24.Solution
   other-modules:
       Paths_advent_of_code_y2021
