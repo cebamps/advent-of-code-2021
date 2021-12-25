@@ -2,7 +2,15 @@
 {-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -Wall #-}
 
-module D24.Coroutine where
+module D24.Coroutine
+  ( Variadic (feed, receive, finish),
+    PureVariadic (PureVariadic, PureVariadicDone),
+
+    CoroutineVariadic (CoroutineVariadic),
+    SuspendedProgram,
+    coroutineVariadic,
+  )
+where
 
 import Control.Monad.Coroutine (Coroutine, resume)
 import Control.Monad.Coroutine.SuspensionFunctors (Await (Await))
@@ -13,6 +21,9 @@ type SuspendedProgram s a b = Coroutine (Await a) (State s) b
 class Variadic f where
   feed :: a -> f a b -> f a b
   receive :: f a b -> b
+  finish :: [a] -> f a b -> b
+  finish [] vf = receive vf
+  finish (x : xs) vf = let vf' = feed x vf in finish xs vf'
 
 data PureVariadic a b
   = PureVariadic (a -> PureVariadic a b)
@@ -23,10 +34,6 @@ instance Variadic PureVariadic where
   receive _ = error "computation is not finished"
   feed x (PureVariadic f) = f x
   feed _ (PureVariadicDone _) = error "computation takes no more arguments"
-
-finish :: Variadic f => [a] -> f a b -> b
-finish [] vf = receive vf
-finish (x : xs) vf = let vf' = feed x vf in finish xs vf'
 
 -- encapsulates a stateful computation in progress
 newtype CoroutineVariadic s a b

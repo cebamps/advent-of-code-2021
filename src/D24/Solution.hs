@@ -7,7 +7,13 @@ import Control.Monad (forM_)
 import Control.Monad.Coroutine.SuspensionFunctors (await)
 import Control.Monad.State.Strict (State, get, gets, modify)
 import Control.Monad.Trans (lift)
-import D24.Coroutine (CoroutineVariadic (CoroutineVariadic), PureVariadic (PureVariadic, PureVariadicDone), SuspendedProgram, Variadic, coroutineVariadic, feed, finish, receive)
+import D24.Coroutine
+  ( CoroutineVariadic (CoroutineVariadic),
+    PureVariadic (PureVariadic, PureVariadicDone),
+    SuspendedProgram,
+    Variadic (feed, finish, receive),
+    coroutineVariadic,
+  )
 import Data.Bifunctor (first)
 import Data.List (find, foldl', sort, tails)
 import Data.Maybe (fromJust)
