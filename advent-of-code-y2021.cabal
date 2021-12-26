@@ -45,6 +45,7 @@ library
       D23.Solution
       D24.Coroutine
       D24.Solution
+      D25.Solution
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:
@@ -54,6 +55,7 @@ library
     , base >=4.7 && <5
     , comonad
     , containers
+    , massiv
     , monad-coroutine
     , mtl
     , parsec
@@ -315,6 +317,17 @@ executable d23
 
 executable d24
   main-is: d24.hs
+  other-modules:
+      Paths_advent_of_code_y2021
+  hs-source-dirs:
+      exe
+  build-depends:
+      advent-of-code-y2021
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+executable d25
+  main-is: d25.hs
   other-modules:
       Paths_advent_of_code_y2021
   hs-source-dirs:

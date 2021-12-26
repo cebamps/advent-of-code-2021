@@ -10,6 +10,7 @@ library:
     - array
     - comonad
     - containers
+    - massiv
     - monad-coroutine
     - mtl
     - parsec
@@ -43,4 +44,4 @@ executables:
   d22: { <<: *base-exe, main: d22.hs }
   d23: { <<: *base-exe, main: d23.hs }
   d24: { <<: *base-exe, main: d24.hs }
-# d25: { <<: *base-exe, main: d25.hs }
+  d25: { <<: *base-exe, main: d25.hs }

@@ -418,3 +418,21 @@ is my next step.
 Spoilers: I ended up resolving it by hand. That was such a crazy challenge.
 
 See [src/d24/Solution.md](src/d24/Solution.md) for the details.
+
+
+# Day 25
+
+Reached for a lib with good support for 2D arrays. Massiv fits the bill, and
+was very pleasant to use after poking through its massive (hah) API.
+
+I also took the liberty to implement some awful unsafe side effects to extract
+the iteration count from Massiv's optimized iteration algorithm.
+
+I could have done it differently: at each round, collect a list of updates,
+update the array if there are updates, and stop if there aren't any.
+
+The collection of updates could be done using stencils, folding over the
+delayed array produced by `mapStencil`.
+
+But `iterateUntil` is optimized to avoid copies, so I went for the cheaper IO
+trick to leverage that.
