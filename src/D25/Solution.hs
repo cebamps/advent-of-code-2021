@@ -79,8 +79,8 @@ iterateUntilHack conv next f = unsafePerformIO $ do
   let next' it f' = unsafePerformIO $ do
         writeIORef iteration it >> return (next it f')
   let iterationResult = iterateUntil conv next' f
-  iterations <- iterationResult `seq` readIORef iteration
-  return (iterations, iterationResult)
+  lastIteration <- iterationResult `seq` readIORef iteration
+  return (lastIteration, iterationResult)
 
 solve1 :: Field -> Int
 solve1 = (1 +) . fst . iterateUntilHack (const (==)) (const $ stepS . stepW)
