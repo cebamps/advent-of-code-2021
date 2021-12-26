@@ -2,7 +2,8 @@
 
 module D19.Solution (solve) where
 
-import D19.Geometry (Rotation, Triple, add3, idRotation, lift3, map3, rotate, rotationGroup, sub3)
+import Control.Monad (forM_)
+import D19.Geometry (Rotation, Triple, add3, idRotation, lift3, map3, rotate, rotationGroup, showRotation, sub3)
 import Data.Ix (inRange)
 import Data.Monoid (First (First, getFirst))
 import qualified Data.Set as S
@@ -19,10 +20,11 @@ requiredOverlap = 12
 solve :: String -> IO ()
 solve inputStr = do
   input <- parseOrFail inputP inputStr
-  -- _debugPlacement input
   let placements = accumulatePlacedRegions input
   print $ solve1 placements
   print $ solve2 placements
+  putStr "\n"
+  debugPlacements placements
 
 -- Approach: find a quick way to determine whether and how two regions overlap.
 -- We have 35 regions in total in our input, which makes 595 unordered pairs.
@@ -48,11 +50,18 @@ type Shift = Triple Int
 
 type Transformation = (Rotation, Shift)
 
-type ScannerRegion = S.Set Beacon
+data ScannerRegion = ScannerRegion {sBeacons :: Beacons, sId :: Int} deriving (Eq, Show)
+
+type Beacons = S.Set Beacon
 
 type Input = [ScannerRegion]
 
-type Placement = (Transformation, ScannerRegion)
+data Placement = Placement
+  { pTransformation :: Transformation,
+    pRegion :: ScannerRegion,
+    pMatch :: Int
+  }
+  deriving (Eq, Show)
 
 --- part 1
 
@@ -93,7 +102,7 @@ takeSet s = [(x, S.delete x s) | x <- S.elems s]
 -- compose transformations and handle more nested data structures.
 accumulatePlacedRegions :: [ScannerRegion] -> [Placement]
 accumulatePlacedRegions [] = []
-accumulatePlacedRegions (reg : regs) = let start = [(idTr, reg)] in go start regs
+accumulatePlacedRegions (reg : regs) = let start = [Placement idTr reg 0] in go start regs
   where
     go :: [Placement] -> [ScannerRegion] -> [Placement]
     go ps [] = ps
@@ -108,31 +117,31 @@ pushPlacedRegion ps reg = do
   p <- placeRegion ps reg
   return $ ps ++ [p]
 
-placeRegion :: [Placement] -> ScannerRegion -> Maybe (Transformation, ScannerRegion)
+placeRegion :: [Placement] -> ScannerRegion -> Maybe Placement
 placeRegion refs reg = firstJust $ do
-  ((_, origin), ref) <- refs
+  Placement (_, origin) ref _ <- refs
   return $ matchRegions origin ref reg
 
 -- takes an untransformed region, returns a transformed one + the transformation
-matchRegions :: Shift -> ScannerRegion -> ScannerRegion -> Maybe (Transformation, ScannerRegion)
+matchRegions :: Shift -> ScannerRegion -> ScannerRegion -> Maybe Placement
 matchRegions origin ref reg = firstJust $ do
   r <- rotationGroup
-  let rotatedReg = S.map (rotate r) reg
+  let rotatedBeacons = S.map (rotate r) (sBeacons reg)
   return $ do
-    (shift, transformedReg) <- matchRotatedRegions origin ref rotatedReg
-    return ((r, shift), transformedReg)
+    (shift, transformedBeacons) <- matchRotatedRegions origin (sBeacons ref) rotatedBeacons
+    return $ Placement (r, shift) reg {sBeacons = transformedBeacons} (sId ref)
 
 -- takes a rotated region, returns a transformed one + the shift
-matchRotatedRegions :: Shift -> ScannerRegion -> ScannerRegion -> Maybe (Shift, ScannerRegion)
-matchRotatedRegions origin ref reg = firstJust $ do
+matchRotatedRegions :: Shift -> Beacons -> Beacons -> Maybe (Shift, Beacons)
+matchRotatedRegions origin refB regB = firstJust $ do
   -- extract one point from each region.
   -- Nice optimization borrowed from elsewhere after looking for other
   -- solutions online: once we have 11 points left from the reference set,
   -- there's no need to try and match the rest. Indeed, if we find a successful
   -- match, there will be at least 12 points of overlap, which means we would
   -- have tried that pairing of (vRef, vReg) before and succeeded.
-  (vRef, ref') <- take (S.size ref - requiredOverlap + 1) $ takeSet ref
-  (vReg, reg') <- takeSet reg
+  (vRef, refB') <- take (S.size refB - requiredOverlap + 1) $ takeSet refB
+  (vReg, regB') <- takeSet regB
   -- Shifting transformation to apply to move vReg onto vRef. The shift is the
   -- vector joining the origin of the reference region to the origin of the
   -- candidate region.
@@ -144,20 +153,20 @@ matchRotatedRegions origin ref reg = firstJust $ do
 
   let placementShift = sub3 vRef vReg
   let relShift = sub3 placementShift origin
-  let reg'Shifted = S.map (add3 placementShift) reg'
+  let regB'Shifted = S.map (add3 placementShift) regB'
   let (rlb, rub) = getIntersection relShift
   let bounds = (add3 origin rlb, add3 origin rub)
   return $
     -- beware: we have taken one point out so the minimum overlap is 11 points,
     -- not 12
-    if regsMatch (requiredOverlap - 1) bounds ref' reg'Shifted
+    if beaconsMatch (requiredOverlap - 1) bounds refB' regB'Shifted
       then -- vRef is vReg shifted in place
-        Just (placementShift, vRef `S.insert` reg'Shifted)
+        Just (placementShift, vRef `S.insert` regB'Shifted)
       else Nothing
   where
     -- here's where the magic happens
-    regsMatch :: Int -> (Triple Int, Triple Int) -> ScannerRegion -> ScannerRegion -> Bool
-    regsMatch expectedN bounds r1 r2 =
+    beaconsMatch :: Int -> (Triple Int, Triple Int) -> Beacons -> Beacons -> Bool
+    beaconsMatch expectedN bounds r1 r2 =
       let filterReg = S.filter (inRange bounds)
           r1f = filterReg r1
           r2f = filterReg r2
@@ -188,15 +197,22 @@ getIntersection s =
 
 --- $> getIntersection (2000,0,0)
 
-_debugPlacement :: Input -> IO ()
-_debugPlacement input = do
-  let sol = accumulatePlacedRegions input
-  let fullMap = S.unions (fmap snd sol)
-  print sol
-  print $ S.toList fullMap
+debugPlacements :: [Placement] -> IO ()
+debugPlacements sol = do
+  -- print sol
+  -- let fullMap = S.unions . fmap (sBeacons . pRegion) $ sol
+  -- print $ S.toList fullMap
+
+  putStrLn "Placements:"
+  forM_ sol $ \pl -> do
+    putStr "\n"
+    let Placement {pMatch = refId, pTransformation = (rot, shift), pRegion = ScannerRegion {sId = plId}} = pl
+    putStrLn $ show plId ++ " matched to " ++ show refId
+    putStrLn $ "  Rotation: " ++ showRotation rot
+    putStrLn $ "  Shift: " ++ show shift
 
 solve1 :: [Placement] -> Int
-solve1 = S.size . S.unions . fmap snd
+solve1 = S.size . S.unions . fmap (sBeacons . pRegion)
 
 --- part 2
 
@@ -205,7 +221,7 @@ manhattan u v = let (x, y, z) = map3 abs (u `sub3` v) in x + y + z
 
 solve2 :: [Placement] -> Int
 solve2 placements =
-  let scanners = snd . fst <$> placements
+  let scanners = snd . pTransformation <$> placements
    in maximum [manhattan s1 s2 | s1 <- scanners, s2 <- scanners]
 
 --- parsing
@@ -214,9 +230,12 @@ inputP :: Parser Input
 inputP = sepEndBy scannerP (many1 endOfLine)
 
 scannerP :: Parser ScannerRegion
-scannerP = skipHeader *> (S.fromList <$> sepEndBy beaconP endOfLine)
+scannerP = do
+  sid <- headerP
+  beacons <- S.fromList <$> sepEndBy beaconP endOfLine
+  return $ ScannerRegion beacons sid
   where
-    skipHeader = string "--- scanner " *> many1 digit *> string " ---" *> endOfLine
+    headerP = fmap read $ string "--- scanner " *> many1 digit <* string " ---" <* endOfLine
 
 beaconP :: Parser Beacon
 beaconP = (,,) <$> signedIntP <*> (char ',' *> signedIntP) <*> (char ',' *> signedIntP)

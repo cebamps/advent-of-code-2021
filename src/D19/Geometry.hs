@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module D19.Geometry
@@ -8,6 +9,7 @@ module D19.Geometry
     map3,
     --
     Rotation,
+    showRotation,
     rotationGroup,
     idRotation,
     rotate,
@@ -16,7 +18,7 @@ where
 
 import Data.Bifunctor (Bifunctor (first))
 import Data.Bits (xor)
-import Data.List ((\\))
+import Data.List (intercalate, (\\))
 
 --- Triples of values
 
@@ -112,8 +114,8 @@ rotationGroup =
 
 -- $> length rotationGroup == 24
 
-_invertPermutation :: Triple Axis -> Triple Axis
-_invertPermutation = map3On (map3 locate (X, Y, Z))
+invertPermutation :: Triple Axis -> Triple Axis
+invertPermutation = map3On (map3 locate (X, Y, Z))
   where
     locate :: Eq a => a -> Triple a -> Axis
     locate x t | x == getAxis X t = X
@@ -123,7 +125,7 @@ _invertPermutation = map3On (map3 locate (X, Y, Z))
 
 _invertRotation :: Rotation -> Rotation
 _invertRotation (Rotation p fs) =
-  let p' = _invertPermutation p
+  let p' = invertPermutation p
       fs' = permute p fs
    in Rotation p' fs'
 
@@ -133,6 +135,15 @@ rotate :: Num a => Rotation -> Triple a -> Triple a
 rotate r = permute (getPermutation r) . flip3 (getFlip r)
 
 --- $> let r = makeRotation (Y, False) (Z, False) in rotate r $ (1, 0, 0)
+
+showRotation :: Rotation -> String
+showRotation Rotation {getFlip = flp, getPermutation = prm} =
+  let (x, y, z) =
+        lift3
+          (++)
+          (map3 (\case True -> "-"; _ -> "") flp)
+          (map3 show $ invertPermutation prm)
+   in "(" ++ intercalate ", " [x, y, z] ++ ")"
 
 --- Translation
 
